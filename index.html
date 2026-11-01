@@ -359,7 +359,7 @@
   const $ = id => document.getElementById(id);
   const screens = { intro:$('screenIntro'), create:$('screenCreate'), lobby:$('screenLobby'), game:$('screenGame') };
 
-  function showScreen(name){ Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active'); }
+    function showScreen(name){ Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active'); }
 
   async function logToSheet(name){
     try {
@@ -716,7 +716,6 @@
     const isSpectator = me && !me.alive;
     const alivePlayers = players.filter(p => p.alive);
     const aliveKillers = alivePlayers.filter(p => p.role === 'killer').length;
-    const isEndGame = alivePlayers.length <= 3 && aliveKillers > 0;
 
     $('playerRoleCard').style.display = isHost ? 'none' : 'block';
     $('spectatorBanner').style.display = (isSpectator && !isHost) ? 'block' : 'none';
@@ -739,12 +738,14 @@
 
     renderTown(room);
 
-    $('hostTimerPanel').style.display = isHost && !gameOver && !isEndGame ? 'block' : 'none';
+    // FIX: Host controls are always available until gameOver is truly triggered.
+    // The win-condition logic (checkWinConditionOnHost) is the single source of truth
+    // for when the game actually ends — no client-side isEndGame lockout.
+    $('hostTimerPanel').style.display = isHost && !gameOver ? 'block' : 'none';
     $('hostVotePanel').style.display = isHost && phase==='day' && !gameOver ? 'block' : 'none';
     
-    // Hide "Next Phase" button if it's the 3-player endgame
     if ($('btnNextPhase')) {
-        $('btnNextPhase').style.display = isEndGame ? 'none' : 'inline-block';
+        $('btnNextPhase').style.display = isHost && !gameOver ? 'inline-block' : 'none';
     }
 
     $('gameLog').style.display = isHost ? 'block' : 'none';
@@ -1097,12 +1098,12 @@
     });
   }
 
-  function handlePlayerClick(id){
+    function handlePlayerClick(id){
     if (gameOver || phase === 'lobby' || isHost) return;
     const me = players.find(p=>p.id === myPlayerId);
     if (!me || !me.alive) return;
     if (id === me.id) return;
-	    const target = players.find(p=>p.id===id);
+    const target = players.find(p=>p.id===id);
     if (!target || !target.alive) return;
 
     if (phase === 'day') return;
@@ -1242,8 +1243,8 @@
     }
     
     if (diff <= 0 && timerEnd > 0) {
-        if ($('hostTimer')) $('hostTimerHint').textContent = 'Time is up!';
-        if ($('playerTimer')) $('playerTimerHint').textContent = 'Time is up!';
+        if ($('hostTimerHint')) $('hostTimerHint').textContent = 'Time is up!';
+        if ($('playerTimerHint')) $('playerTimerHint').textContent = 'Time is up!';
     }
   }
 
@@ -1298,6 +1299,7 @@
     if (Object.keys(counts).length === 0){
       results.innerHTML += '<div style="color:#8a9bb5;">No votes cast.</div>';
       await roomRef.child('gameLogs').push({ text: '🗳️ No votes were cast.', type: 'system' });
+      await roomRef.update({ voteOpen: false, votes: {} });
       return;
     }
     
@@ -1459,7 +1461,7 @@
     });
   }
 
-  // ===== PRIVATE CHAT (Detective only - RELEASE/DETAIN REMOVED) =====
+  // ===== PRIVATE CHAT (Detective only) =====
   function openPrivateChat(targetId, targetName, type){
     const myId = players.find(p=>p.id === myPlayerId).id;
     const chatRoomId = [myId, targetId].sort().join('_');
