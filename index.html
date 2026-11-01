@@ -22,8 +22,8 @@
   .col { display:flex; flex-direction:column; gap:12px; }
   .center { justify-content:center; align-items:center; }
   label { display:block; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase; color:#aab8d0; font-weight:700; margin-bottom:6px; }
-  input[type=text] { width:100%; background:#0c1220; border:2px solid #2e3a52; border-radius:14px; padding:14px 16px; font-size:1rem; color:#e8eefc; font-weight:600; outline:none; }
-  input[type=text]:focus { border-color:#f5c542; box-shadow:0 0 0 3px rgba(245,197,66,0.15); }
+  input[type=text], input[type=number] { width:100%; background:#0c1220; border:2px solid #2e3a52; border-radius:14px; padding:14px 16px; font-size:1rem; color:#e8eefc; font-weight:600; outline:none; }
+  input[type=text]:focus, input[type=number]:focus { border-color:#f5c542; box-shadow:0 0 0 3px rgba(245,197,66,0.15); }
   .outfit-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px; }
   .outfit { background:#1a2233; border:2px solid #2e3a52; border-radius:16px; padding:10px; text-align:center; cursor:pointer; transition:0.15s; }
   .outfit:hover { border-color:#55647e; }
@@ -50,20 +50,25 @@
   .role-assign-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .role-assign-row .pname { flex:1; font-weight:700; color:#cbd5e1; font-size:0.85rem; }
   select { background:#0c1220; border:2px solid #2e3a52; border-radius:10px; padding:8px 12px; color:#e8eefc; font-weight:700; font-size:0.85rem; outline:none; }
-  .town-scene { position:relative; background:#1a2418; background-image:radial-gradient(circle at 50% 50%,#2d4a2a 0%,#0a1a0a 80%); border-radius:32px; padding:20px; margin-bottom:16px; border:2px solid #3d5a37; min-height:500px; transition:background 0.6s; }
-  .town-scene.night { background-image:radial-gradient(circle at 50% 50%,#1a2a4a 0%,#060a12 80%); border-color:#2a3a5a; }
+  
+  /* UPDATED TOWN SCENE WITH BACKGROUND IMAGE */
+  .town-scene { position:relative; background: url('https://i.imgur.com/your_background_image.jpg') center/cover no-repeat; background-color: #1a2418; border-radius:32px; padding:20px; margin-bottom:16px; border:2px solid #3d5a37; min-height:500px; transition:background 0.6s; box-shadow: inset 0 0 50px rgba(0,0,0,0.8); }
+  .town-scene.night { background: url('https://i.imgur.com/your_background_image.jpg') center/cover no-repeat; background-color: #0a0a1a; box-shadow: inset 0 0 100px rgba(0,0,0,0.95), inset 0 0 50px #1a2a4a; border-color:#2a3a5a; }
+  
   .town-ring { position:relative; width:100%; max-width:560px; aspect-ratio:1; margin:0 auto; }
-  .house-slot { position:absolute; width:60px; height:60px; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.5s ease; cursor:pointer; }
-  .house-emoji { font-size:1.6rem; filter:drop-shadow(0 3px 4px #0008); }
-  .house-player { position:absolute; bottom:-20px; font-size:0.55rem; font-weight:700; color:#cbd5e1; background:#0e121ccc; padding:1px 6px; border-radius:10px; white-space:nowrap; max-width:70px; overflow:hidden; text-overflow:ellipsis; border:1px solid #3a4a5a; }
-  .house-player.dead { color:#a33; text-decoration:line-through; }
+  .house-slot { position:absolute; width:60px; height:60px; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.5s ease; cursor:pointer; z-index: 10; }
+  .house-emoji { font-size:2rem; filter:drop-shadow(0 3px 6px #000); }
+  .house-player { position:absolute; bottom:-24px; font-size:0.65rem; font-weight:800; color:#fff; background:#0e121ccc; padding:2px 8px; border-radius:10px; white-space:nowrap; max-width:80px; overflow:hidden; text-overflow:ellipsis; border:1px solid #3a4a5a; }
+  .house-player.dead { color:#ff6b6b; text-decoration:line-through; }
   .house-slot.at-table { opacity:0.4; }
-  .house-slot.highlight { filter:drop-shadow(0 0 10px #f5c542); }
-  .house-slot.prison { filter:drop-shadow(0 0 10px #4a90d9); opacity:0.7; }
-  .center-table { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:140px; height:140px; border-radius:50%; background:radial-gradient(circle,#7a5a3a,#3d2e1e); border:4px solid #2a1a0e; box-shadow:0 12px 30px #0008,inset 0 0 30px #0006; display:flex; align-items:center; justify-content:center; transition:all 0.5s; }
+  .house-slot.highlight { filter:drop-shadow(0 0 15px #f5c542); transform:translate(-50%,-50%) scale(1.1); }
+  .house-slot.prison { filter:drop-shadow(0 0 15px #4a90d9); opacity:0.7; }
+  
+  .center-table { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:140px; height:140px; border-radius:50%; background:radial-gradient(circle,#7a5a3a,#3d2e1e); border:4px solid #2a1a0e; box-shadow:0 12px 30px #0008,inset 0 0 30px #0006; display:flex; align-items:center; justify-content:center; transition:all 0.5s; z-index: 5; }
   .center-table.night { background:radial-gradient(circle,#2a2a4a,#0e0e1e); border-color:#1e1e2a; }
   .center-table .table-text { color:#f5c542; font-weight:800; letter-spacing:2px; font-size:0.7rem; text-align:center; }
   .center-table.night .table-text { color:#6a7a9a; }
+  
   .role-badge { display:inline-block; padding:6px 18px; border-radius:40px; font-weight:800; font-size:1rem; letter-spacing:1px; border:2px solid; }
   .role-badge.killer { background:#4a1f1f; border-color:#b44; color:#ffb3b3; }
   .role-badge.doctor { background:#1b2a4a; border-color:#3a6bb4; color:#b0d0ff; }
@@ -71,26 +76,30 @@
   .role-badge.jester { background:#4a3a1b; border-color:#b4903a; color:#f5e6b0; }
   .role-badge.civilian { background:#1b3a2b; border-color:#2e8b57; color:#b5f0c5; }
   .role-badge.special_civilian { background:#1b2b3a; border-color:#3a8bb4; color:#b0e0ff; }
+  
   .timer-box { font-family:'Courier New',monospace; font-weight:800; font-size:2.4rem; text-align:center; background:#10141f; border:2px solid #3d475c; border-radius:20px; padding:8px 0; letter-spacing:4px; color:#f5c542; margin-bottom:12px; }
   .timer-box.warning { color:#ff6b6b; animation:blink 0.6s infinite; }
   .timer-box.night-timer { color:#8a9bff; border-color:#3a4a8a; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  
   .modal-backdrop { position:fixed; inset:0; background:rgba(5,8,14,0.92); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:500; padding:20px; }
   .modal-backdrop.hidden { display:none; }
   .modal-box { background:#131a28; border:1px solid #3d4a63; border-radius:28px; padding:28px; max-width:480px; width:100%; max-height:90vh; overflow-y:auto; }
   .modal-box h2 { font-size:1.3rem; color:#e8eefc; margin-bottom:12px; text-align:center; }
   .modal-box p { color:#aab8d0; font-size:0.9rem; line-height:1.6; margin-bottom:12px; text-align:center; }
+  
   .vote-list { display:flex; flex-direction:column; gap:8px; margin:12px 0; }
   .vote-row { display:flex; align-items:center; justify-content:space-between; background:#1a2233; padding:10px 14px; border-radius:12px; border:1px solid #2e3a52; }
   .vote-row .n { font-weight:700; color:#e8eefc; } .vote-row .count { font-weight:800; color:#f5c542; }
+  
   .chat-box { display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; background:#0c1220; border-radius:12px; padding:10px; margin-bottom:10px; border:1px solid #2e3a52; }
   .chat-msg { font-size:0.85rem; color:#cbd5e1; } .chat-msg .who { color:#f5c542; font-weight:700; }
+  
   .rps-choices { display:flex; gap:12px; justify-content:center; margin:16px 0; }
   .rps-btn { width:70px; height:70px; font-size:2rem; background:#1a2233; border:2px solid #2e3a52; border-radius:20px; cursor:pointer; transition:0.15s; }
   .rps-btn:hover { border-color:#f5c542; } .rps-btn.selected { border-color:#f5c542; background:#2a2512; box-shadow:0 0 16px rgba(245,197,66,0.5); }
   .rps-btn:disabled { opacity:0.4; cursor:not-allowed; }
-  .kill-overlay { position:fixed; inset:0; background:#000a; z-index:600; display:flex; align-items:center; justify-content:center; font-size:8rem; animation:killPulse 0.9s ease; }
-  @keyframes killPulse { 0%{transform:scale(0.3);opacity:0} 40%{transform:scale(1.2);opacity:1} 100%{transform:scale(1);opacity:1} }
+  
   .log { background:#10141f; border:1px solid #2b3446; border-radius:16px; padding:10px 14px; height:120px; overflow-y:auto; font-family:'Courier New',monospace; font-size:0.8rem; color:#b5c2d8; margin-top:12px; }
   .log-entry { margin-bottom:4px; border-left:3px solid #3d4b62; padding-left:10px; line-height:1.5; }
   .log-entry.system { border-color:#f5c542; color:#e8d9b0; }
@@ -99,12 +108,14 @@
   .log-entry.doctor { border-color:#3a6bb4; color:#b0d0ff; }
   .log-entry.detective { border-color:#8b3ab4; color:#d8b0ff; }
   .log-entry.jester { border-color:#b4903a; color:#f5e6b0; }
+  
   .flex-between { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .mt-2 { margin-top:12px; } .mb-2 { margin-bottom:12px; }
   .small-note { font-size:0.75rem; color:#5e6d88; text-align:center; margin-top:10px; }
   .spectator-banner { background:#3a1f1f; border:2px solid #b44; border-radius:16px; padding:14px; text-align:center; color:#ffb3b3; font-weight:700; margin-bottom:16px; }
   .host-badge { background:#b28b1f; color:#000; font-size:0.7rem; padding:2px 8px; border-radius:10px; font-weight:800; vertical-align:middle; margin-left:8px; }
   .vote-modal-btn { width:100%; margin-bottom:8px; text-align:left; padding:12px 16px; font-size:1rem; }
+  
   .bell { position:relative; display:inline-block; cursor:pointer; margin-left:12px; }
   .bell-icon { font-size:1.5rem; }
   .bell-badge { position:absolute; top:-4px; right:-8px; background:#a33; color:#fff; border-radius:50%; padding:2px 6px; font-size:0.7rem; font-weight:800; display:none; border:2px solid #131a28; animation:bellPulse 1s infinite; }
@@ -235,8 +246,10 @@
     <div class="host-panel" id="hostTimerPanel" style="display:none;">
       <h3>🎩 Host — phase control</h3>
       <div class="timer-box" id="hostTimer">1:00</div>
-      <div class="row" style="justify-content:center;gap:10px;">
-        <button class="btn primary" id="btnStartTimer">▶ START 1:00</button>
+      <div class="row" style="justify-content:center;gap:10px; align-items:center;">
+        <label style="margin:0;">Time (seconds):</label>
+        <input type="number" id="hostTimerInput" value="60" min="10" max="300" style="width:80px; padding:8px; text-align:center;">
+        <button class="btn primary" id="btnStartTimer">▶ START</button>
         <button class="btn" id="btnSkipTimer">⏭ SKIP</button>
         <button class="btn danger" id="btnNextPhase">→ NEXT PHASE</button>
       </div>
@@ -248,11 +261,13 @@
       <p class="small-note" id="playerTimerHint">Waiting for host…</p>
     </div>
     
+    <!-- DETECTIVE: Added Restrain Button -->
     <div class="card" id="playerActionPanel" style="display:none;">
       <div class="flex-between">
         <div style="font-weight:700;color:#cbd5e1;" id="actionHint">Select a player</div>
         <div class="row">
           <button class="btn" id="btnClearTarget">✖ CLEAR</button>
+          <button class="btn" id="btnRestrain" style="display:none; background:#8b3ab4; border-color:#b490ff;">🔒 RESTRAIN</button>
           <button class="btn primary" id="btnPerformAction" disabled>ACTION</button>
         </div>
       </div>
@@ -322,7 +337,7 @@
   const firebaseConfig = {
     apiKey: "AIzaSyB0BHHCZPouM9J13MM6F74bWpdsurY1l-I",
     authDomain: "mafia-b1eb4.firebaseapp.com",
-    databaseURL: "https://mafia-b1eb4-default-rtdb.firebaseio.com",
+        databaseURL: "https://mafia-b1eb4-default-rtdb.firebaseio.com",
     projectId: "mafia-b1eb4",
     storageBucket: "mafia-b1eb4.appspot.com",
     messagingSenderId: "844798370570",
@@ -335,7 +350,6 @@
   const MAX_PLAYERS = 12;
   const MIN_PLAYERS = 4;
   const KILLER_COUNT = 3;
-  const PHASE_SECONDS = 60;
   const OUTFITS = ['🧥','👕','🧣','🎩','👘','🥋','🦺','🧤','👔','👗','🧢','🎓'];
 
   let roomCode = null;
@@ -448,7 +462,8 @@
 
     const self = {
       id: myPlayerId, name: pendingCharacter.name, gender: pendingCharacter.gender,
-      outfit: pendingCharacter.outfit, role: null, alive: true, ready: false, usedAction: false
+      outfit: pendingCharacter.outfit, role: null, alive: true, ready: false, usedAction: false,
+      detainedUntilDay: 0, restrainCooldown: 0
     };
     
     await roomRef.child(`players/${myPlayerId}`).set(self);
@@ -478,16 +493,13 @@
       const me = players.find(p => p.id === myPlayerId);
 
       // ===== KICKED PLAYER CHECK =====
-      // If I am not the host and I am no longer in the players list, I was kicked.
       if (!isHost && !me && room.hostId) {
           alert("You have been removed from the room by the Host.");
           if (roomRef && roomRef.off) roomRef.off();
-          location.reload(); // Reset the page
+          location.reload();
           return;
       }
-      // ==================================
 
-      // Reset RPS active flag whenever there is no active RPS game
       if (!room.rpsGame && window.__rpsActive) {
           window.__rpsActive = false;
       }
@@ -495,24 +507,74 @@
       // --- SPECIAL CIVILIAN NOTIFICATION LOGIC ---
       if (me && me.role === 'special_civilian' && me.pendingAction && me.pendingAction.status) {
           if (me.pendingAction.status === 'accepted') {
-              // RPS is now handled globally by the room listener, so we don't start it locally here.
+              // RPS handled globally
           } else if (me.pendingAction.status === 'declined') {
               openModal(`<h2>Challenge Declined</h2><p>The player refused your challenge.</p><button class="btn primary" onclick="closeModal()">OK</button>`);
           }
           roomRef.child(`players/${myPlayerId}/pendingAction`).remove(); 
       }
-      // -------------------------------------------------------------------
 
+      // ===== GAME OVER SCREEN =====
       if (room.gameOver && !window.__gameOverShown) {
           window.__gameOverShown = true;
           stopLocalTimer();
           openModal(`
             <h2>${room.winnerTitle || 'GAME OVER'}</h2>
             <p>${room.winnerMessage || 'The game has ended.'}</p>
-            <div class="row center" style="margin-top:20px;">
-              <button class="btn primary" onclick="location.reload()">↻ PLAY AGAIN</button>
+            <div class="row center" style="margin-top:20px; flex-direction:column; gap:10px;">
+              <button class="btn primary" id="btnPlayAgain" style="width:100%;">↻ PLAY AGAIN</button>
+              ${isHost ? `<button class="btn" id="btnForceLobby" style="width:100%; margin-top:8px;">⏹ FORCE ALL TO LOBBY</button>` : ''}
             </div>
           `);
+
+          $('btnPlayAgain').addEventListener('click', async () => {
+              closeModal();
+              if (isHost) {
+                  // Host resets the room
+                  await roomRef.update({
+                      phase: 'lobby', dayCount: 1, rolesLocked: false, gameOver: false,
+                      votes: {}, nightActions: {}, voteOpen: false, timerEnd: 0, rpsGame: null,
+                      winnerTitle: null, winnerMessage: null,
+                      'chats/alive': {}, 'chats/dead': {}
+                  });
+                  // Reset all players' state
+                  const updates = {};
+                  players.forEach(p => {
+                      updates[`players/${p.id}/ready`] = false;
+                      updates[`players/${p.id}/alive`] = true;
+                      updates[`players/${p.id}/role`] = null;
+                      updates[`players/${p.id}/usedAction`] = false;
+                      updates[`players/${p.id}/detainedUntilDay`] = 0;
+                      updates[`players/${p.id}/restrainCooldown`] = 0;
+                  });
+                  await roomRef.update(updates);
+              } else {
+                  // Non-host: wait for host to reset
+                  $('modalBox').innerHTML = `<h2>Waiting for Host</h2><p>The host is resetting the room...</p>`;
+              }
+          });
+
+          if (isHost) {
+              $('btnForceLobby').addEventListener('click', async () => {
+                  closeModal();
+                  await roomRef.update({
+                      phase: 'lobby', dayCount: 1, rolesLocked: false, gameOver: false,
+                      votes: {}, nightActions: {}, voteOpen: false, timerEnd: 0, rpsGame: null,
+                      winnerTitle: null, winnerMessage: null,
+                      'chats/alive': {}, 'chats/dead': {}
+                  });
+                  const updates = {};
+                  players.forEach(p => {
+                      updates[`players/${p.id}/ready`] = false;
+                      updates[`players/${p.id}/alive`] = true;
+                      updates[`players/${p.id}/role`] = null;
+                      updates[`players/${p.id}/usedAction`] = false;
+                      updates[`players/${p.id}/detainedUntilDay`] = 0;
+                      updates[`players/${p.id}/restrainCooldown`] = 0;
+                  });
+                  await roomRef.update(updates);
+              });
+          }
       }
 
       if (phase === 'lobby') {
@@ -600,7 +662,6 @@
       if (p){
         slot.className = 'lobby-slot filled' + (p.ready ? ' ready' : '');
         
-        // Only show the kick button to the Host, and only for other players
         const kickBtn = (isHost && p.id !== myPlayerId) 
           ? `<div class="kick-btn" onclick="kickPlayer('${p.id}')" title="Kick Player">✖</div>` 
           : '';
@@ -733,7 +794,7 @@
     return {
       killer:'At night, choose a player to eliminate. Kill all civilians to win.',
       doctor:'During the day, you can revive one dead player — one time only. You have no night action.',
-      detective:'At night, investigate a player. Chat for 30s, then detain (1 day prison) or release.',
+      detective:'At night, investigate or restrain a player. Restrain puts them in jail for 1 day (2-day cooldown).',
       jester:'If you get voted out during the day, you instantly win.',
       civilian:'Discuss and vote during the day. Survive the night.',
       special_civilian:'You have a one-time ability to challenge a player to Rock-Paper-Scissors at night.'
@@ -782,13 +843,16 @@
         $('hostPlayerListPanel').style.display = 'block';
         let listHtml = '';
         players.forEach(p => {
-            listHtml += `<div>${p.alive ? '🟢' : '💀'} <b>${escapeHtml(p.name)}</b> - ${p.role ? p.role.replace('_',' ').toUpperCase() : '???'}</div>`;
+            let statusIcon = p.alive ? '🟢' : '💀';
+            let extra = '';
+            if (p.detainedUntilDay && dayCount < p.detainedUntilDay) { extra = ' (🚔 JAILED)'; }
+            listHtml += `<div>${statusIcon} <b>${escapeHtml(p.name)}</b> - ${p.role ? p.role.replace('_',' ').toUpperCase() : '???'}${extra}</div>`;
         });
         $('hostPlayerList').innerHTML = listHtml;
 
         let historyHtml = '';
         (room.gameLogs || []).forEach(log => {
-            if (log.text.includes('💀') || log.text.includes('🩺') || log.text.includes('🗳️') || log.text.includes('💊')) {
+            if (log.text.includes('💀') || log.text.includes('🩺') || log.text.includes('🗳️') || log.text.includes('💊') || log.text.includes('🔒')) {
                 historyHtml += `<div>${log.text}</div>`;
             }
         });
@@ -816,11 +880,20 @@
     const canAct = !isHost && me && me.alive && !inPrison && !gameOver && phase !== 'lobby';
     $('playerActionPanel').style.display = canAct ? 'block' : 'none';
 
+    // Show Restrain button only for Detective during Night
+    if (!isHost && me && me.alive && me.role === 'detective' && phase === 'night' && !gameOver) {
+        const canRestrain = !me.restrainCooldown || dayCount >= me.restrainCooldown;
+        $('btnRestrain').style.display = canRestrain ? 'inline-block' : 'none';
+        $('btnRestrain').disabled = selectedTargetId === null;
+    } else {
+        $('btnRestrain').style.display = 'none';
+    }
+
     updateTimerUI();
     if (!localTimerInterval && timerEnd > 0) startLocalTimer();
     updateActionButton(room);
 
-    // --- RPS LISTENER INITIATION (Real-time sync) ---
+    // --- RPS LISTENER INITIATION ---
     if (room.rpsGame && !window.__rpsActive) {
         const rps = room.rpsGame;
         if (!isHost && me && (me.id === rps.challengerId || me.id === rps.defenderId)) {
@@ -977,14 +1050,14 @@
                             if ($('rpsStatus')) $('rpsStatus').textContent = cWin ? `${state.challengerName} wins the round!` : `${state.defenderName} wins the round!`;
                         }
 
-                        setTimeout(async () => {
+                                                setTimeout(async () => {
                             newState.challengerPick = null;
                             newState.defenderPick = null;
                             await roomRef.child('rpsGame').set(newState);
                         }, 1500);
-                    }
-                }
-            });
+                    } // closes the if (challengerPick && defenderPick)
+                } // closes the if (state.challengerPick && state.defenderPick && state.status === 'playing')
+            }); // closes the roomRef.child('rpsGame').on('value', ...)
         }
     }
     
@@ -1087,7 +1160,7 @@
     const ring = $('townRing');
     ring.querySelectorAll('.house-slot').forEach(n=>n.remove());
 
-        const n = MAX_PLAYERS;
+    const n = MAX_PLAYERS;
     const radius = 42;
     players.forEach((p,i)=>{
       const angle = (i/n) * Math.PI * 2 - Math.PI/2;
@@ -1240,7 +1313,7 @@
       return;
     }
 
-    // ===== NIGHT (doctor excluded) =====
+    // ===== NIGHT =====
     if (phase === 'night'){
       if (me.role === 'killer'){
         await roomRef.child(`nightActions/killer`).set(target.id);
@@ -1251,6 +1324,30 @@
         await roomRef.child(`players/${target.id}/pendingAction`).set({ type: 'challenge', fromId: me.id, fromName: me.name });
       }
       selectedTargetId = null;
+    }
+  });
+
+  // ===== DETECTIVE RESTRAIN =====
+  $('btnRestrain').addEventListener('click', async ()=>{
+    const me = players.find(p=>p.id === myPlayerId);
+    if (!me || selectedTargetId === null) return;
+    const target = players.find(p=>p.id===selectedTargetId);
+    if (!target) return;
+
+    if (phase === 'night' && me.role === 'detective') {
+        await roomRef.child(`players/${target.id}/detainedUntilDay`).set(dayCount + 1);
+        await roomRef.child(`players/${myPlayerId}/restrainCooldown`).set(dayCount + 2);
+        await roomRef.child('gameLogs').push({
+          text: `🔒 The Detective restrained <b>${escapeHtml(target.name)}</b> to jail!`,
+          type: 'detective'
+        });
+        openModal(`
+          <h2>🔒 Restrained!</h2>
+          <p><b>${escapeHtml(target.name)}</b> has been sent to jail.</p>
+          <p style="font-size:0.85rem;color:#8a9bb5;">They will be released at the end of Day ${dayCount + 1}.</p>
+          <button class="btn primary" onclick="closeModal()">OK</button>
+        `);
+        selectedTargetId = null;
     }
   });
 
@@ -1328,7 +1425,8 @@
 
   // ===== HOST TIMER ACTIONS =====
   $('btnStartTimer').addEventListener('click', async ()=>{
-    const end = Date.now() + (PHASE_SECONDS * 1000);
+    const secs = parseInt($('hostTimerInput').value) || 60;
+    const end = Date.now() + (secs * 1000);
     await roomRef.child('timerEnd').set(end);
   });
 
