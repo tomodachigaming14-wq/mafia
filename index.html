@@ -702,7 +702,7 @@
   function roleDescription(role){
     return {
       killer:'At night, choose a player to eliminate. Kill all civilians to win.',
-      doctor:'At night, protect one player. You have one revive for the whole game.',
+      doctor:'During the day, you can revive one dead player — one time only. You have no night action.',
       detective:'At night, investigate a player. Chat for 30s, then detain (1 day prison) or release.',
       jester:'If you get voted out during the day, you instantly win.',
       civilian:'Discuss and vote during the day. Survive the night.',
@@ -1062,7 +1062,7 @@
     }
   };
 
-  function renderTown(room){
+   function renderTown(room){
     const ring = $('townRing');
     ring.querySelectorAll('.house-slot').forEach(n=>n.remove());
 
@@ -1091,62 +1091,101 @@
         <div class="house-player ${p.alive?'':'dead'}">${escapeHtml(p.name)}</div>
       `;
       
-      if (p.alive && !gameOver && phase !== 'lobby' && !isHost){
-        slot.addEventListener('click', ()=>handlePlayerClick(p.id));
+      if (!gameOver && phase !== 'lobby' && !isHost){
+        // Doctor can click dead players during day for revive
+        if (phase === 'day'){
+          const me = players.find(p=>p.id === myPlayerId);
+          if (me && me.alive && me.role === 'doctor' && !me.usedAction && !p.alive){
+            slot.style.cursor = 'pointer';
+            slot.addEventListener('click', ()=>handlePlayerClick(p.id));
+          }
+        } else if (p.alive){
+          slot.addEventListener('click', ()=>handlePlayerClick(p.id));
+        }
       }
       ring.appendChild(slot);
     });
   }
 
-    function handlePlayerClick(id){
+      function handlePlayerClick(id){
     if (gameOver || phase === 'lobby' || isHost) return;
     const me = players.find(p=>p.id === myPlayerId);
     if (!me || !me.alive) return;
     if (id === me.id) return;
     const target = players.find(p=>p.id===id);
-    if (!target || !target.alive) return;
+    if (!target) return;
 
-    if (phase === 'day') return;
+    // ===== DAY: Doctor can revive a dead player (once per game) =====
+    if (phase === 'day'){
+      if (me.role === 'doctor' && !me.usedAction && !target.alive){
+        selectedTargetId = selectedTargetId === id ? null : id;
+        renderGame({});
+      }
+      return;
+    }
 
+    // ===== NIGHT =====
     if (phase === 'night'){
+      if (!target.alive) return;
       if (actionLocked) return;
       if (me.role === 'killer'){
         if (target.role === 'killer') return;
         selectedTargetId = selectedTargetId === id ? null : id;
         renderGame({});
-      } else if (me.role === 'doctor' || me.role === 'detective'){
+      } else if (me.role === 'detective'){
         selectedTargetId = selectedTargetId === id ? null : id;
         renderGame({});
       } else if (me.role === 'special_civilian' && !me.usedAction){
         selectedTargetId = selectedTargetId === id ? null : id;
         renderGame({});
       }
+      // Doctor: NO night action anymore
     }
   }
 
-  function updateActionButton(room){
+   function updateActionButton(room){
     const me = players.find(p=>p.id === myPlayerId);
     const btn = $('btnPerformAction');
     const hint = $('actionHint');
-    if (!me || !me.alive || gameOver || actionLocked){ btn.disabled = true; return; }
+    if (!me || !me.alive || gameOver) { btn.disabled = true; return; }
 
+    // ===== DAY: Doctor revive =====
     if (phase === 'day'){
-      btn.style.display = 'none';
-      hint.textContent = 'Use the bell to vote when the Host opens it.';
-    } else if (phase === 'night'){
+      if (me.role === 'doctor'){
+        btn.style.display = 'inline-block';
+        if (me.usedAction) {
+          btn.textContent = '💊 REVIVE (USED)';
+          btn.disabled = true;
+          hint.textContent = 'You have already used your revive.';
+        } else {
+          btn.textContent = '💊 REVIVE';
+          btn.disabled = selectedTargetId === null;
+          hint.textContent = selectedTargetId === null
+            ? 'Tap a dead player to revive them (once per game).'
+            : 'Press REVIVE to bring them back.';
+        }
+      } else {
+        btn.style.display = 'none';
+        hint.textContent = 'Use the bell to vote when the Host opens it.';
+      }
+      return;
+    }
+
+    // ===== NIGHT =====
+    if (phase === 'night'){
+      if (actionLocked){ btn.disabled = true; return; }
       btn.style.display = 'inline-block';
       if (me.role === 'killer'){
         btn.textContent = '🔪 KILL'; btn.disabled = selectedTargetId === null;
         hint.textContent = 'Select a victim';
-      } else if (me.role === 'doctor'){
-        btn.textContent = '🩺 PROTECT'; btn.disabled = selectedTargetId === null;
-        hint.textContent = 'Select who to protect';
       } else if (me.role === 'detective'){
         btn.textContent = '🔍 INVESTIGATE'; btn.disabled = selectedTargetId === null;
         hint.textContent = 'Select who to investigate';
       } else if (me.role === 'special_civilian'){
         if (me.usedAction) { btn.textContent = 'USED'; btn.disabled = true; hint.textContent = 'You have used your challenge.'; }
         else { btn.textContent = '⚔️ CHALLENGE'; btn.disabled = selectedTargetId === null; hint.textContent = 'Select who to challenge to RPS'; }
+      } else if (me.role === 'doctor'){
+        btn.textContent = '💊 WAIT'; btn.disabled = true; hint.textContent = 'Doctors sleep through the night. You can revive during the day.';
       } else {
         btn.textContent = '🌙 WAIT'; btn.disabled = true; hint.textContent = 'You sleep through the night.';
       }
@@ -1155,17 +1194,36 @@
 
   $('btnClearTarget').addEventListener('click', ()=>{ selectedTargetId = null; renderGame({}); });
 
-  $('btnPerformAction').addEventListener('click', async ()=>{
+    $('btnPerformAction').addEventListener('click', async ()=>{
     const me = players.find(p=>p.id === myPlayerId);
     if (!me || selectedTargetId === null) return;
     const target = players.find(p=>p.id===selectedTargetId);
     if (!target) return;
 
+    // ===== DAY: Doctor revive =====
+    if (phase === 'day'){
+      if (me.role === 'doctor' && !me.usedAction && !target.alive){
+        await roomRef.child(`players/${target.id}/alive`).set(true);
+        await roomRef.child(`players/${myPlayerId}/usedAction`).set(true);
+        await roomRef.child('gameLogs').push({
+          text: `💊 The doctor revived <b>${escapeHtml(target.name)}</b>!`,
+          type: 'doctor'
+        });
+        openModal(`
+          <h2>💊 Revived!</h2>
+          <p><b>${escapeHtml(target.name)}</b> has been brought back to life.</p>
+          <p style="font-size:0.85rem;color:#8a9bb5;">You cannot revive again this game.</p>
+          <button class="btn primary" onclick="closeModal()">OK</button>
+        `);
+        selectedTargetId = null;
+      }
+      return;
+    }
+
+    // ===== NIGHT (doctor excluded) =====
     if (phase === 'night'){
       if (me.role === 'killer'){
         await roomRef.child(`nightActions/killer`).set(target.id);
-      } else if (me.role === 'doctor'){
-        await roomRef.child(`nightActions/doctor`).set(target.id);
       } else if (me.role === 'detective'){
         await roomRef.child(`players/${target.id}/pendingAction`).set({ type: 'detective', fromId: me.id, fromName: me.name });
         openPrivateChat(target.id, 'Detective', 'detective');
@@ -1387,39 +1445,32 @@
     await roomRef.update({ voteOpen: false, votes: {} });
   }
 
-  async function resolveNightOnHost(){
+    async function resolveNightOnHost(){
     const roomSnap = await roomRef.once('value');
     const room = roomSnap.val();
     const actions = room.nightActions || {};
     
     let victimId = actions.killer;
-    let saveId = actions.doctor;
     let killedName = '';
     let killedRole = '';
-    let died = false;
 
     if (victimId) {
-      if (saveId === victimId) {
-        await roomRef.child('gameLogs').push({ text: `🩺 The doctor saved someone!`, type: 'doctor' });
-      } else {
-        await roomRef.child(`players/${victimId}/alive`).set(false);
-        const victim = room.players[victimId];
-        killedName = victim.name;
-        killedRole = victim.role.replace('_',' ').toUpperCase();
-        died = true;
-        
-        await roomRef.child('gameLogs').push({ 
-            text: `💀 <b>${escapeHtml(victim.name)}</b> was killed during the night. They were the <b>${killedRole}</b>.`, 
-            type: 'killer' 
-        });
+      await roomRef.child(`players/${victimId}/alive`).set(false);
+      const victim = room.players[victimId];
+      killedName = victim.name;
+      killedRole = victim.role.replace('_',' ').toUpperCase();
+      
+      await roomRef.child('gameLogs').push({ 
+          text: `💀 <b>${escapeHtml(victim.name)}</b> was killed during the night. They were the <b>${killedRole}</b>.`, 
+          type: 'killer' 
+      });
 
-        openModal(`
-          <h2>Someone has died!</h2>
-          <p><b>${escapeHtml(killedName)}</b> was killed during the night.</p>
-          <p>Their role was: <span class="role-badge ${killedRole.toLowerCase().replace(' ','_')}">${killedRole}</span></p>
-          <button class="btn primary" onclick="closeModal()">OK</button>
-        `);
-      }
+      openModal(`
+        <h2>Someone has died!</h2>
+        <p><b>${escapeHtml(killedName)}</b> was killed during the night.</p>
+        <p>Their role was: <span class="role-badge ${killedRole.toLowerCase().replace(' ','_')}">${killedRole}</span></p>
+        <button class="btn primary" onclick="closeModal()">OK</button>
+      `);
     } else {
       await roomRef.child('gameLogs').push({ text: '🌙 A quiet night. Nobody was killed.', type: 'system' });
     }
