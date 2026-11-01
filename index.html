@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAFIA · online</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+  body { background:#0b0e14; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; color:#e8eefc; }
+  .app { max-width:1100px; width:100%; background:#0e121c; border-radius:32px; padding:24px; box-shadow:0 20px 40px rgba(0,0,0,0.8),0 0 0 2px #2d3547 inset; border:1px solid #4b556b; position:relative; overflow:hidden; }
+  h1.logo { font-size:2.2rem; font-weight:800; letter-spacing:8px; color:#e8eefc; text-align:center; font-family:'Courier New',monospace; text-shadow:0 0 10px #8a9bb5,0 4px 0 #0a0c12; }
+  .sub { text-align:center; color:#8a9bb5; font-size:0.8rem; letter-spacing:3px; text-transform:uppercase; margin-bottom:24px; }
+  .screen { display:none; } .screen.active { display:block; }
+  .btn { background:#2b3446; border:1px solid #55647e; color:#d3def5; padding:12px 26px; border-radius:50px; font-weight:700; font-size:1rem; cursor:pointer; box-shadow:0 4px 0 #0b0e14; transition:0.08s; font-family:inherit; }
+  .btn:active { transform:translateY(2px); box-shadow:0 2px 0 #0b0e14; }
+  .btn:disabled { opacity:0.4; pointer-events:none; }
+  .btn.primary { background:#f5c542; color:#121620; border:none; border-bottom:4px solid #b28b1f; padding:14px 36px; font-weight:800; font-size:1.05rem; letter-spacing:1px; box-shadow:0 6px 0 #0b0e14; }
+  .btn.success { background:#3a9b6b; color:#06120c; border:none; border-bottom:4px solid #1e6b3b; box-shadow:0 6px 0 #0b0e14; }
+  .btn.danger { background:#a33; color:#fff; border:none; border-bottom:4px solid #6a1e1e; box-shadow:0 6px 0 #0b0e14; }
+  .card { background:#131a28; border:1px solid #2e3a52; border-radius:24px; padding:24px; margin-bottom:16px; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .col { display:flex; flex-direction:column; gap:12px; }
+  .center { justify-content:center; align-items:center; }
+  label { display:block; font-size:0.8rem; letter-spacing:1px; text-transform:uppercase; color:#aab8d0; font-weight:700; margin-bottom:6px; }
+  input[type=text] { width:100%; background:#0c1220; border:2px solid #2e3a52; border-radius:14px; padding:14px 16px; font-size:1rem; color:#e8eefc; font-weight:600; outline:none; }
+  input[type=text]:focus { border-color:#f5c542; box-shadow:0 0 0 3px rgba(245,197,66,0.15); }
+  .outfit-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px; }
+  .outfit { background:#1a2233; border:2px solid #2e3a52; border-radius:16px; padding:10px; text-align:center; cursor:pointer; transition:0.15s; }
+  .outfit:hover { border-color:#55647e; }
+  .outfit.selected { border-color:#f5c542; background:#2a2512; box-shadow:0 0 12px rgba(245,197,66,0.3); }
+  .outfit .emoji { font-size:2rem; display:block; }
+  .outfit .label { font-size:0.65rem; color:#aab8d0; font-weight:700; text-transform:uppercase; }
+  .gender-row { display:flex; gap:10px; }
+  .gender-btn { flex:1; padding:14px; background:#1a2233; border:2px solid #2e3a52; border-radius:14px; cursor:pointer; color:#aab8d0; font-weight:700; font-size:0.9rem; }
+  .gender-btn.selected { border-color:#f5c542; background:#2a2512; color:#f5e6b0; }
+  .lobby-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:12px; }
+  .lobby-slot { background:#1a2233; border:2px dashed #2e3a52; border-radius:16px; padding:12px 6px; text-align:center; min-height:90px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+  .lobby-slot.filled { border-style:solid; border-color:#3a9b6b; background:#16251f; }
+  .lobby-slot.ready { border-color:#f5c542; background:#2a2512; }
+  .lobby-slot .name { font-size:0.8rem; font-weight:700; color:#cbd5e1; word-break:break-word; }
+  .lobby-slot .avatar { font-size:1.8rem; }
+  .lobby-slot .tag { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.5px; color:#f5c542; font-weight:700; }
+  .host-panel { background:#1a1a2e; border:2px solid #b28b1f; border-radius:20px; padding:16px; margin-bottom:16px; }
+  .host-panel h3 { font-size:0.9rem; letter-spacing:1px; color:#f5c542; text-transform:uppercase; margin-bottom:12px; }
+  .role-assign-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .role-assign-row .pname { flex:1; font-weight:700; color:#cbd5e1; font-size:0.85rem; }
+  select { background:#0c1220; border:2px solid #2e3a52; border-radius:10px; padding:8px 12px; color:#e8eefc; font-weight:700; font-size:0.85rem; outline:none; }
+  .town-scene { position:relative; background:#1a2418; background-image:radial-gradient(circle at 50% 50%,#2d4a2a 0%,#0a1a0a 80%); border-radius:32px; padding:20px; margin-bottom:16px; border:2px solid #3d5a37; min-height:500px; transition:background 0.6s; }
+  .town-scene.night { background-image:radial-gradient(circle at 50% 50%,#1a2a4a 0%,#060a12 80%); border-color:#2a3a5a; }
+  .town-ring { position:relative; width:100%; max-width:560px; aspect-ratio:1; margin:0 auto; }
+  .house-slot { position:absolute; width:60px; height:60px; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; justify-content:center; transition:all 0.5s ease; cursor:pointer; }
+  .house-emoji { font-size:1.6rem; filter:drop-shadow(0 3px 4px #0008); }
+  .house-player { position:absolute; bottom:-20px; font-size:0.55rem; font-weight:700; color:#cbd5e1; background:#0e121ccc; padding:1px 6px; border-radius:10px; white-space:nowrap; max-width:70px; overflow:hidden; text-overflow:ellipsis; border:1px solid #3a4a5a; }
+  .house-player.dead { color:#a33; text-decoration:line-through; }
+  .house-slot.at-table { opacity:0.4; }
+  .house-slot.highlight { filter:drop-shadow(0 0 10px #f5c542); }
+  .house-slot.prison { filter:drop-shadow(0 0 10px #4a90d9); opacity:0.7; }
+  .center-table { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:140px; height:140px; border-radius:50%; background:radial-gradient(circle,#7a5a3a,#3d2e1e); border:4px solid #2a1a0e; box-shadow:0 12px 30px #0008,inset 0 0 30px #0006; display:flex; align-items:center; justify-content:center; transition:all 0.5s; }
+  .center-table.night { background:radial-gradient(circle,#2a2a4a,#0e0e1e); border-color:#1e1e2a; }
+  .center-table .table-text { color:#f5c542; font-weight:800; letter-spacing:2px; font-size:0.7rem; text-align:center; }
+  .center-table.night .table-text { color:#6a7a9a; }
+  .role-badge { display:inline-block; padding:6px 18px; border-radius:40px; font-weight:800; font-size:1rem; letter-spacing:1px; border:2px solid; }
+  .role-badge.killer { background:#4a1f1f; border-color:#b44; color:#ffb3b3; }
+  .role-badge.doctor { background:#1b2a4a; border-color:#3a6bb4; color:#b0d0ff; }
+  .role-badge.detective { background:#2a1b4a; border-color:#8b3ab4; color:#d8b0ff; }
+  .role-badge.jester { background:#4a3a1b; border-color:#b4903a; color:#f5e6b0; }
+  .role-badge.civilian { background:#1b3a2b; border-color:#2e8b57; color:#b5f0c5; }
+  .role-badge.special_civilian { background:#1b2b3a; border-color:#3a8bb4; color:#b0e0ff; }
+  .timer-box { font-family:'Courier New',monospace; font-weight:800; font-size:2.4rem; text-align:center; background:#10141f; border:2px solid #3d475c; border-radius:20px; padding:8px 0; letter-spacing:4px; color:#f5c542; margin-bottom:12px; }
+  .timer-box.warning { color:#ff6b6b; animation:blink 0.6s infinite; }
+  .timer-box.night-timer { color:#8a9bff; border-color:#3a4a8a; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .modal-backdrop { position:fixed; inset:0; background:rgba(5,8,14,0.92); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:500; padding:20px; }
+  .modal-backdrop.hidden { display:none; }
+  .modal-box { background:#131a28; border:1px solid #3d4a63; border-radius:28px; padding:28px; max-width:480px; width:100%; max-height:90vh; overflow-y:auto; }
+  .modal-box h2 { font-size:1.3rem; color:#e8eefc; margin-bottom:12px; text-align:center; }
+  .modal-box p { color:#aab8d0; font-size:0.9rem; line-height:1.6; margin-bottom:12px; text-align:center; }
+  .vote-list { display:flex; flex-direction:column; gap:8px; margin:12px 0; }
+  .vote-row { display:flex; align-items:center; justify-content:space-between; background:#1a2233; padding:10px 14px; border-radius:12px; border:1px solid #2e3a52; }
+  .vote-row .n { font-weight:700; color:#e8eefc; } .vote-row .count { font-weight:800; color:#f5c542; }
+  .chat-box { display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; background:#0c1220; border-radius:12px; padding:10px; margin-bottom:10px; border:1px solid #2e3a52; }
+  .chat-msg { font-size:0.85rem; color:#cbd5e1; } .chat-msg .who { color:#f5c542; font-weight:700; }
+  .rps-choices { display:flex; gap:12px; justify-content:center; margin:16px 0; }
+  .rps-btn { width:70px; height:70px; font-size:2rem; background:#1a2233; border:2px solid #2e3a52; border-radius:20px; cursor:pointer; transition:0.15s; }
+  .rps-btn:hover { border-color:#f5c542; } .rps-btn.selected { border-color:#f5c542; background:#2a2512; box-shadow:0 0 16px rgba(245,197,66,0.5); }
+  .rps-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .kill-overlay { position:fixed; inset:0; background:#000a; z-index:600; display:flex; align-items:center; justify-content:center; font-size:8rem; animation:killPulse 0.9s ease; }
+  @keyframes killPulse { 0%{transform:scale(0.3);opacity:0} 40%{transform:scale(1.2);opacity:1} 100%{transform:scale(1);opacity:1} }
+  .log { background:#10141f; border:1px solid #2b3446; border-radius:16px; padding:10px 14px; height:120px; overflow-y:auto; font-family:'Courier New',monospace; font-size:0.8rem; color:#b5c2d8; margin-top:12px; }
+  .log-entry { margin-bottom:4px; border-left:3px solid #3d4b62; padding-left:10px; line-height:1.5; }
+  .log-entry.system { border-color:#f5c542; color:#e8d9b0; }
+  .log-entry.killer { border-color:#c44; color:#f0b0b0; }
+  .log-entry.civilian { border-color:#3a9b6b; color:#b5e6c5; }
+  .log-entry.doctor { border-color:#3a6bb4; color:#b0d0ff; }
+  .log-entry.detective { border-color:#8b3ab4; color:#d8b0ff; }
+  .log-entry.jester { border-color:#b4903a; color:#f5e6b0; }
+  .flex-between { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .mt-2 { margin-top:12px; } .mb-2 { margin-bottom:12px; }
+  .small-note { font-size:0.75rem; color:#5e6d88; text-align:center; margin-top:10px; }
+  .spectator-banner { background:#3a1f1f; border:2px solid #b44; border-radius:16px; padding:14px; text-align:center; color:#ffb3b3; font-weight:700; margin-bottom:16px; }
+  .host-badge { background:#b28b1f; color:#000; font-size:0.7rem; padding:2px 8px; border-radius:10px; font-weight:800; vertical-align:middle; margin-left:8px; }
+  .vote-modal-btn { width:100%; margin-bottom:8px; text-align:left; padding:12px 16px; font-size:1rem; }
+  .bell { position:relative; display:inline-block; cursor:pointer; margin-left:12px; }
+  .bell-icon { font-size:1.5rem; }
+  .bell-badge { position:absolute; top:-4px; right:-8px; background:#a33; color:#fff; border-radius:50%; padding:2px 6px; font-size:0.7rem; font-weight:800; display:none; border:2px solid #131a28; animation:bellPulse 1s infinite; }
+  @keyframes bellPulse { 0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SCREEN 1: Intro -->
+  <div id="screenIntro" class="screen active">
+    <h1 class="logo">MAFIA</h1>
+    <div class="sub">online · village of shadows</div>
+    <div class="card">
+      <div class="col">
+        <button class="btn primary" id="btnHost" style="width:100%;">🎩 HOST A ROOM</button>
+        <div style="height:6px;"></div>
+        <label>Join with room code</label>
+        <div class="row">
+          <input type="text" id="joinCode" placeholder="e.g. A1B2C3" maxlength="6" style="flex:1; text-transform:uppercase; letter-spacing:4px; font-family:'Courier New',monospace;">
+          <button class="btn" id="btnJoin" style="white-space:nowrap;">🚪 JOIN ROOM</button>
+        </div>
+        <p class="small-note" id="introNote">Host gets a 6-character code. Share it with friends.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: Create Character -->
+  <div id="screenCreate" class="screen">
+    <h1 class="logo" style="font-size:1.6rem;">CREATE CHARACTER</h1>
+    <div class="sub" id="createSub">join</div>
+    <div class="card">
+      <label>Your name</label>
+      <input type="text" id="charName" placeholder="e.g. Mako" maxlength="16" autocomplete="off">
+      <label class="mt-2">Gender</label>
+      <div class="gender-row">
+        <button class="gender-btn selected" data-gender="male">♂ MALE</button>
+        <button class="gender-btn" data-gender="female">♀ FEMALE</button>
+      </div>
+      <label class="mt-2">Outfit</label>
+      <div class="row" style="justify-content:space-between;">
+        <div class="small-note" style="margin:0;">Tap an outfit · or hit random</div>
+        <button class="btn" id="btnRandomOutfit" style="padding:8px 16px;font-size:0.85rem;">🎲 RANDOM</button>
+      </div>
+      <div class="outfit-grid" id="outfitGrid"></div>
+      <div class="row mt-2" style="justify-content:flex-end;">
+        <button class="btn" id="btnCreateBack">↩ BACK</button>
+        <button class="btn primary" id="btnCreateConfirm" disabled>✅ CONTINUE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: Lobby -->
+  <div id="screenLobby" class="screen">
+    <h1 class="logo" style="font-size:1.6rem;">LOBBY</h1>
+    <div class="sub" id="lobbySub">waiting for players</div>
+    <div id="hostViewBanner" class="host-panel" style="display:none; text-align:center; border-color:#f5c542;">
+      <h3 style="color:#f5c542; margin:0;">🎩 YOU ARE THE HOST</h3>
+      <p style="color:#aab8d0; font-size:0.85rem; margin-top:8px;">You are the Game Master.</p>
+    </div>
+    <div class="card">
+      <div class="flex-between mb-2">
+        <div style="font-weight:700;color:#cbd5e1;">Players: <span id="lobbyCount" style="color:#f5c542;">0</span> / 12</div>
+      </div>
+      <div class="lobby-grid" id="lobbyGrid"></div>
+    </div>
+    <div class="host-panel" id="hostAssignPanel" style="display:none;">
+      <h3>🎩 Host — assign roles</h3>
+      <div id="roleAssignList"></div>
+      <div class="row mt-2" style="justify-content:flex-end;">
+        <button class="btn" id="btnAutoAssign">🎲 AUTO-ASSIGN</button>
+        <button class="btn primary" id="btnConfirmRoles" disabled>✅ CONFIRM ROLES</button>
+      </div>
+    </div>
+    <div class="card" id="playerReadyPanel" style="display:none;">
+      <div class="row center" style="flex-direction:column;gap:14px;">
+        <p style="color:#cbd5e1;text-align:center;">Roles are assigned. Ready up to begin.</p>
+        <button class="btn success" id="btnReady" style="padding:16px 48px;font-size:1.1rem;">✅ READY</button>
+      </div>
+    </div>
+    <div class="host-panel" id="hostStartPanel" style="display:none;">
+      <h3>🎩 Host controls</h3>
+      <p style="color:#aab8d0;font-size:0.85rem;margin-bottom:12px;">All players must be ready to start.</p>
+      <button class="btn primary" id="btnStartGame" disabled style="width:100%;">▶ START GAME</button>
+    </div>
+    <div class="log" id="lobbyLog"></div>
+  </div>
+
+  <!-- SCREEN 4: Game -->
+  <div id="screenGame" class="screen">
+    <div id="spectatorBanner" class="spectator-banner" style="display:none;">👻 SPECTATOR MODE</div>
+    <div class="flex-between mb-2">
+      <h1 class="logo" style="font-size:1.4rem;text-align:left;">MAFIA</h1>
+      <div style="display:flex; align-items:center;">
+        <div id="bellContainer" class="bell" style="display:none;">
+          <span class="bell-icon">🔔</span>
+          <span id="bellBadge" class="bell-badge">1</span>
+        </div>
+        <div id="phaseBadge" style="background:#2a3245;padding:8px 22px;border-radius:40px;font-weight:700;font-size:0.9rem;border:1px solid #56607a; margin-left:12px;">DAY 1</div>
+      </div>
+    </div>
+    
+    <div class="card" style="padding:14px; display:none;" id="playerRoleCard">
+      <div class="flex-between">
+        <div>
+          <span style="font-size:0.75rem;letter-spacing:1px;color:#8a9bb5;text-transform:uppercase;font-weight:700;">Your role:</span>
+          <span id="myRoleBadge" class="role-badge civilian">CIVILIAN</span>
+        </div>
+        <div style="font-size:0.85rem;color:#aab8d0;font-weight:700;">
+          <span id="aliveCount">0 alive</span> · <span id="killerCount" style="color:#ffa07a;">0 killers</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="town-scene" id="townScene">
+      <div class="town-ring" id="townRing">
+        <div class="center-table" id="centerTable"><div class="table-text" id="tableText">DISCUSSION</div></div>
+      </div>
+    </div>
+    
+    <div class="host-panel" id="hostPlayerListPanel" style="display:none;">
+      <h3>🎩 Player Status</h3>
+      <div id="hostPlayerList" style="font-size:0.85rem; display:flex; flex-direction:column; gap:4px;"></div>
+      <h3 style="margin-top:16px;">📜 Night History</h3>
+      <div id="hostNightHistory" style="font-size:0.85rem; display:flex; flex-direction:column; gap:4px; color:#b5c2d8; max-height:120px; overflow-y:auto;"></div>
+    </div>
+
+    <div class="host-panel" id="hostTimerPanel" style="display:none;">
+      <h3>🎩 Host — phase control</h3>
+      <div class="timer-box" id="hostTimer">1:00</div>
+      <div class="row" style="justify-content:center;gap:10px;">
+        <button class="btn primary" id="btnStartTimer">▶ START 1:00</button>
+        <button class="btn" id="btnSkipTimer">⏭ SKIP</button>
+        <button class="btn danger" id="btnNextPhase">→ NEXT PHASE</button>
+      </div>
+      <p class="small-note" id="hostTimerHint">Host controls the day/night clock.</p>
+    </div>
+    
+    <div class="card" id="playerTimerPanel" style="display:none;">
+      <div class="timer-box" id="playerTimer">1:00</div>
+      <p class="small-note" id="playerTimerHint">Waiting for host…</p>
+    </div>
+    
+    <div class="card" id="playerActionPanel" style="display:none;">
+      <div class="flex-between">
+        <div style="font-weight:700;color:#cbd5e1;" id="actionHint">Select a player</div>
+        <div class="row">
+          <button class="btn" id="btnClearTarget">✖ CLEAR</button>
+          <button class="btn primary" id="btnPerformAction" disabled>ACTION</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="host-panel" id="hostVotePanel" style="display:none;">
+      <h3>🎩 Host — vote control</h3>
+      <p style="color:#aab8d0;font-size:0.85rem;margin-bottom:10px;">Start the vote so every player can vote out a suspect.</p>
+      <div class="row">
+        <button class="btn primary" id="btnStartVote">🗳️ OPEN VOTE</button>
+      </div>
+      <div class="vote-list" id="hostVoteResults" style="display:none;"></div>
+    </div>
+    
+    <div class="card" id="aliveChatPanel" style="display:none;">
+      <h3 style="font-size:0.9rem; color:#3a9b6b; margin-bottom:8px;">💬 Daytime Chat (Alive)</h3>
+      <div class="chat-box" id="aliveChatBox" style="max-height:150px;"></div>
+      <div class="row">
+        <input type="text" id="aliveChatInput" placeholder="Discuss..." style="flex:1;">
+        <button class="btn" id="btnSendAliveChat" style="padding:8px 16px;">SEND</button>
+      </div>
+    </div>
+
+    <div class="card" id="deadChatPanel" style="display:none; border-color:#b44;">
+      <h3 style="font-size:0.9rem; color:#ffb3b3; margin-bottom:8px;">👻 Ghost Chat (Dead)</h3>
+      <div class="chat-box" id="deadChatBox" style="max-height:150px;"></div>
+      <div class="row">
+        <input type="text" id="deadChatInput" placeholder="Whisper to the dead..." style="flex:1;">
+        <button class="btn" id="btnSendDeadChat" style="padding:8px 16px;">SEND</button>
+      </div>
+    </div>
+
+    <div class="log" id="gameLog" style="display:none;"></div>
+    
+    <div id="hostChatMonitor" style="display:none; margin-top:16px;">
+       <div class="row" style="align-items:stretch;">
+         <div class="card" style="flex:1; padding:10px; display:flex; flex-direction:column;">
+           <h4 style="color:#3a9b6b; font-size:0.8rem; margin-bottom:8px;">Alive Chat</h4>
+           <div id="hostAliveLog" style="font-size:0.8rem; flex:1; min-height:80px; max-height:120px; overflow-y:auto; background:#0c1220; border:1px solid #2e3a52; border-radius:8px; padding:4px;"></div>
+           <div class="row mt-2">
+             <input type="text" id="hostAliveInput" placeholder="Speak to alive..." style="flex:1; padding:8px; font-size:0.8rem;">
+             <button class="btn" id="btnHostSendAlive" style="padding:6px 12px; font-size:0.8rem;">SEND</button>
+           </div>
+         </div>
+         <div class="card" style="flex:1; padding:10px; border-color:#b44; display:flex; flex-direction:column;">
+           <h4 style="color:#ffb3b3; font-size:0.8rem; margin-bottom:8px;">Dead Chat</h4>
+           <div id="hostDeadLog" style="font-size:0.8rem; flex:1; min-height:80px; max-height:120px; overflow-y:auto; background:#0c1220; border:1px solid #b44; border-radius:8px; padding:4px;"></div>
+           <div class="row mt-2">
+             <input type="text" id="hostDeadInput" placeholder="Speak to dead..." style="flex:1; padding:8px; font-size:0.8rem;">
+             <button class="btn" id="btnHostSendDead" style="padding:6px 12px; font-size:0.8rem;">SEND</button>
+           </div>
+         </div>
+       </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal-box" id="modalBox"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+(function(){
+  const firebaseConfig = {
+    apiKey: "AIzaSyB0BHHCZPouM9J13MM6F74bWpdsurY1l-I",
+    authDomain: "mafia-b1eb4.firebaseapp.com",
+    databaseURL: "https://mafia-b1eb4-default-rtdb.firebaseio.com",
+    projectId: "mafia-b1eb4",
+    storageBucket: "mafia-b1eb4.appspot.com",
+    messagingSenderId: "844798370570",
+    appId: "1:844798370570:web:0c42857d40cf259d1290f3"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIDInCLWeArG9BRMLwgy9Ski41N1hnYOapwsvFja_1jDoVqR1lqXtK52vx9Sx-XIM/exec';
+  const MAX_PLAYERS = 12;
+  const MIN_PLAYERS = 4;
+  const KILLER_COUNT = 3;
+  const PHASE_SECONDS = 60;
+  const OUTFITS = ['🧥','👕','🧣','🎩','👘','🥋','🦺','🧤','👔','👗','🧢','🎓'];
+
+  let roomCode = null;
+  let myPlayerId = localStorage.getItem('mafia_pid') || 'p_' + Math.random().toString(36).slice(2,8);
+  localStorage.setItem('mafia_pid', myPlayerId);
+  let roomRef = null;
+  let isHost = false;
+  let players = [];
+  let humanIndex = 0;
+  let mode = null;
+  let pendingCharacter = { name:'', gender:'male', outfit:OUTFITS[0] };
+
+  let phase = 'lobby';
+  let dayCount = 1;
+  let rolesAssigned = false;
+  let gameOver = false;
+  let timerEnd = 0;
+  let actionLocked = true; 
+  
+  let localTimerInterval = null;
+  let selectedTargetId = null;
+  
+  let activeChatRef  = null;
+  let voteTimeout = null;
+
+  const $ = id => document.getElementById(id);
+  const screens = { intro:$('screenIntro'), create:$('screenCreate'), lobby:$('screenLobby'), game:$('screenGame') };
+
+  function showScreen(name){ Object.values(screens).forEach(s=>s.classList.remove('active')); screens[name].classList.add('active'); }
+
+  async function logToSheet(name){
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify({ usernames:[name] })
+      });
+    } catch(err){ console.warn('Sheet log failed'); }
+  }
+
+  // ===== HOST / JOIN =====
+  $('btnHost').addEventListener('click', async ()=>{
+    isHost = true;
+    roomCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+    roomRef = db.ref(`rooms/${roomCode}`);
+    await roomRef.set({ 
+      createdAt: Date.now(), hostId: myPlayerId, 
+      phase: 'lobby', dayCount: 1, rolesLocked: false, gameOver: false,
+      players: {}, votes: {}, nightActions: {}, gameLogs: [],
+      chats: { alive: {}, dead: {} }
+    });
+    enterLobbyOnline();
+  });
+
+  $('btnJoin').addEventListener('click', async ()=>{
+    const code = $('joinCode').value.trim().toUpperCase();
+    if (code.length !== 6){ alert('Enter a 6-character code.'); return; }
+    const snapshot = await db.ref(`rooms/${code}`).once('value');
+    if (!snapshot.exists()){ alert('Room not found.'); return; }
+    
+    isHost = false;
+    roomCode = code;
+    roomRef = db.ref(`rooms/${roomCode}`);
+    mode = 'join';
+    $('createSub').textContent = `join — room ${roomCode}`;
+    showScreen('create');
+    resetCreateForm();
+  });
+
+  // ===== CHARACTER CREATION =====
+  function resetCreateForm(){
+    pendingCharacter = { name:'', gender:'male', outfit:OUTFITS[Math.floor(Math.random()*OUTFITS.length)] };
+    $('charName').value=''; $('btnCreateConfirm').disabled=true;
+    document.querySelectorAll('.gender-btn').forEach(b=>b.classList.toggle('selected', b.dataset.gender==='male'));
+    renderOutfits();
+  }
+
+  function renderOutfits(){
+    const g = $('outfitGrid'); g.innerHTML='';
+    OUTFITS.forEach(o=>{
+      const d = document.createElement('div');
+      d.className = 'outfit' + (pendingCharacter.outfit===o?' selected':'');
+      d.innerHTML = `<span class="emoji">${o}</span><span class="label">outfit</span>`;
+      d.addEventListener('click', ()=>{ pendingCharacter.outfit=o; renderOutfits(); });
+      g.appendChild(d);
+    });
+  }
+
+  document.querySelectorAll('.gender-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      pendingCharacter.gender = b.dataset.gender;
+      document.querySelectorAll('.gender-btn').forEach(x=>x.classList.toggle('selected', x===b));
+    });
+  });
+
+  $('btnRandomOutfit').addEventListener('click', ()=>{ pendingCharacter.outfit = OUTFITS[Math.floor(Math.random()*OUTFITS.length)]; renderOutfits(); });
+  
+  $('charName').addEventListener('input', ()=>{
+    pendingCharacter.name = $('charName').value.trim();
+    $('btnCreateConfirm').disabled = pendingCharacter.name.length < 2;
+  });
+
+  $('btnCreateBack').addEventListener('click', ()=>{ 
+    showScreen('intro'); mode=null; 
+  });
+
+  $('btnCreateConfirm').addEventListener('click', async ()=>{
+    if (pendingCharacter.name.length < 2) return;
+    logToSheet(pendingCharacter.name);
+
+    const self = {
+      id: myPlayerId, name: pendingCharacter.name, gender: pendingCharacter.gender,
+      outfit: pendingCharacter.outfit, role: null, alive: true, ready: false, usedAction: false
+    };
+    
+    await roomRef.child(`players/${myPlayerId}`).set(self);
+    enterLobbyOnline();
+  });
+
+  // ===== MASTER DATABASE LISTENER =====
+  function enterLobbyOnline(){
+    if (roomRef && roomRef.off) roomRef.off();
+    
+    roomRef.on('value', (snap)=>{
+      const room = snap.val();
+      if (!room) return;
+
+      players = Object.values(room.players || {});
+      players.sort((a,b)=> (a.name > b.name ? 1 : -1));
+      humanIndex = players.findIndex(p => p.id === myPlayerId);
+      
+      phase = room.phase || 'lobby';
+      dayCount = room.dayCount || 1;
+      timerEnd = room.timerEnd || 0;
+      rolesAssigned = room.rolesLocked || false;
+      gameOver = room.gameOver || false;
+      actionLocked = (timerEnd === 0);
+      isHost = (room.hostId === myPlayerId);
+
+      const me = players.find(p => p.id === myPlayerId);
+
+      // Reset RPS active flag whenever there is no active RPS game
+      if (!room.rpsGame && window.__rpsActive) {
+          window.__rpsActive = false;
+      }
+
+      // --- SPECIAL CIVILIAN NOTIFICATION LOGIC ---
+      if (me && me.role === 'special_civilian' && me.pendingAction && me.pendingAction.status) {
+          if (me.pendingAction.status === 'accepted') {
+              // RPS is now handled globally by the room listener, so we don't start it locally here.
+          } else if (me.pendingAction.status === 'declined') {
+              openModal(`<h2>Challenge Declined</h2><p>The player refused your challenge.</p><button class="btn primary" onclick="closeModal()">OK</button>`);
+          }
+          roomRef.child(`players/${myPlayerId}/pendingAction`).remove(); 
+      }
+      // -------------------------------------------------------------------
+
+      if (room.gameOver && !window.__gameOverShown) {
+          window.__gameOverShown = true;
+          stopLocalTimer();
+          openModal(`
+            <h2>${room.winnerTitle || 'GAME OVER'}</h2>
+            <p>${room.winnerMessage || 'The game has ended.'}</p>
+            <div class="row center" style="margin-top:20px;">
+              <button class="btn primary" onclick="location.reload()">↻ PLAY AGAIN</button>
+            </div>
+          `);
+      }
+
+      if (phase === 'lobby') {
+        if ($('screenLobby').classList.contains('active') === false && $('screenCreate').classList.contains('active') === false) {
+           showScreen('lobby');
+        } else if ($('screenCreate').classList.contains('active')) {
+           if (room.players && room.players[myPlayerId]) {
+               showScreen('lobby');
+           }
+        }
+        renderLobbyOnline();
+      } else {
+        if ($('screenGame').classList.contains('active') === false) {
+          showScreen('game');
+          if (me && me.role && !window.__roleShownForGame && !isHost) {
+            window.__roleShownForGame = true;
+            showRoleRevealOnline(me.role);
+          }
+          attachChatListeners();
+        }
+        renderGame(room);
+      }
+    });
+  }
+
+  // ===== CHAT LISTENERS =====
+  let aliveChatBound = false;
+  let deadChatBound = false;
+
+  function attachChatListeners(){
+    if (!roomRef) return;
+    
+    if (!aliveChatBound) {
+      aliveChatBound = true;
+      roomRef.child('chats/alive').on('value', snap => {
+        const msgs = snap.val() || {};
+        let html = '';
+        Object.values(msgs).forEach(m => {
+          html += `<div class="chat-msg"><span class="who">${escapeHtml(m.name)}:</span> ${escapeHtml(m.text)}</div>`;
+        });
+        const box = $('aliveChatBox');
+        if (box) { box.innerHTML = html; box.scrollTop = box.scrollHeight; }
+        
+        const hostBox = $('hostAliveLog');
+        if (hostBox) { 
+          let hHtml = '';
+          Object.values(msgs).forEach(m => hHtml += `<div><b>${escapeHtml(m.name)}:</b> ${escapeHtml(m.text)}</div>`);
+          hostBox.innerHTML = hHtml; hostBox.scrollTop = hostBox.scrollHeight; 
+        }
+      });
+    }
+    
+    if (!deadChatBound) {
+      deadChatBound = true;
+      roomRef.child('chats/dead').on('value', snap => {
+        const msgs = snap.val() || {};
+        let html = '';
+        Object.values(msgs).forEach(m => {
+          html += `<div class="chat-msg"><span class="who">${escapeHtml(m.name)}:</span> ${escapeHtml(m.text)}</div>`;
+        });
+        const box = $('deadChatBox');
+        if (box) { box.innerHTML = html; box.scrollTop = box.scrollHeight; }
+        
+        const hostBox = $('hostDeadLog');
+        if (hostBox) { 
+          let hHtml = '';
+          Object.values(msgs).forEach(m => hHtml += `<div><b>${escapeHtml(m.name)}:</b> ${escapeHtml(m.text)}</div>`);
+          hostBox.innerHTML = hHtml; hostBox.scrollTop = hostBox.scrollHeight; 
+        }
+      });
+    }
+  }
+
+  // ===== LOBBY RENDERING =====
+  function renderLobbyOnline(){
+    $('lobbyCount').textContent = players.length;
+    $('lobbySub').textContent = `room ${roomCode} · ${players.length}/${MAX_PLAYERS} players`;
+    $('hostViewBanner').style.display = isHost ? 'block' : 'none';
+
+    const grid = $('lobbyGrid');
+    grid.innerHTML = '';
+    for (let i=0; i<MAX_PLAYERS; i++){
+      const p = players[i];
+      const slot = document.createElement('div');
+      if (p){
+        slot.className = 'lobby-slot filled' + (p.ready ? ' ready' : '');
+        slot.innerHTML = `
+          <div class="avatar">${p.outfit}${p.gender==='female'?'♀':'♂'}</div>
+          <div class="name">${escapeHtml(p.name)}</div>
+          <div class="tag">${p.ready?'READY':'NOT READY'}</div>
+        `;
+      } else {
+        slot.className = 'lobby-slot';
+        slot.innerHTML = `<div class="avatar" style="opacity:0.3;">⏳</div><div class="name" style="opacity:0.4;">empty</div>`;
+      }
+      grid.appendChild(slot);
+    }
+
+    const me = players.find(p => p.id === myPlayerId);
+
+    if (isHost && !rolesAssigned && players.length >= MIN_PLAYERS){
+      $('hostAssignPanel').style.display='block';
+      renderRoleAssignListOnline();
+    } else {
+      $('hostAssignPanel').style.display='none';
+    }
+
+    if (rolesAssigned){
+      $('playerReadyPanel').style.display = isHost ? 'none' : 'block';
+      $('hostStartPanel').style.display = isHost ? 'block' : 'none';
+      const allReady = players.length >= MIN_PLAYERS && players.every(p=>p.ready);
+      $('btnStartGame').disabled = !allReady;
+      
+      if (me && !isHost){
+        $('btnReady').disabled = me.ready;
+        $('btnReady').textContent = me.ready ? '✅ READY (WAITING)' : '✅ READY';
+      }
+    } else {
+      $('playerReadyPanel').style.display='none';
+      $('hostStartPanel').style.display='none';
+    }
+  }
+
+  function renderRoleAssignListOnline(){
+    const list = $('roleAssignList');
+    list.innerHTML = '';
+    players.forEach(p=>{
+      const row = document.createElement('div');
+      row.className = 'role-assign-row';
+      row.innerHTML = `
+        <span class="pname">${escapeHtml(p.name)}</span>
+        <select data-player="${p.id}">
+          <option value="">— pick —</option>
+          <option value="killer"${p.role==='killer'?' selected':''}>Killer</option>
+          <option value="doctor"${p.role==='doctor'?' selected':''}>Doctor</option>
+          <option value="detective"${p.role==='detective'?' selected':''}>Detective</option>
+          <option value="jester"${p.role==='jester'?' selected':''}>Jester</option>
+          <option value="civilian"${p.role==='civilian'?' selected':''}>Civilian</option>
+          <option value="special_civilian"${p.role==='special_civilian'?' selected':''}>Special Civilian</option>
+        </select>
+      `;
+      list.appendChild(row);
+    });
+    list.querySelectorAll('select').forEach(sel=>{
+      sel.addEventListener('change', async ()=>{
+        const pid = sel.dataset.player;
+        await roomRef.child(`players/${pid}/role`).set(sel.value || null);
+      });
+    });
+    $('btnConfirmRoles').disabled = !players.every(p=>p.role);
+  }
+
+  $('btnAutoAssign').addEventListener('click', async ()=>{
+    const n = players.length;
+    const pool = [];
+    for (let i=0; i<KILLER_COUNT && i<n; i++) pool.push('killer');
+    if (pool.length < n) pool.push('doctor');
+    if (pool.length < n) pool.push('detective');
+    if (pool.length < n) pool.push('jester');
+    if (pool.length < n) pool.push('special_civilian');
+    while (pool.length < n) pool.push('civilian');
+    for (let i=pool.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]] = [pool[j],pool[i]];
+    }
+    const updates = {};
+    players.forEach((p,i)=>{ updates[`players/${p.id}/role`] = pool[i]; });
+    await roomRef.update(updates);
+  });
+
+  $('btnConfirmRoles').addEventListener('click', async ()=>{
+    if (!players.every(p=>p.role)) return;
+    await roomRef.child('rolesLocked').set(true);
+  });
+
+  $('btnReady').addEventListener('click', async ()=>{
+    const me = players.find(p=>p.id===myPlayerId);
+    if (!me) return;
+    await roomRef.child(`players/${myPlayerId}/ready`).set(true);
+  });
+
+  $('btnStartGame').addEventListener('click', async ()=>{
+    if (!players.every(p=>p.ready)) return;
+    window.__rpsActive = false;
+    await roomRef.update({ phase: 'day', dayCount: 1, timerEnd: 0 });
+  });
+
+  function showRoleRevealOnline(role){
+    if (!role) return;
+    openModal(`
+      <h2>Your role</h2>
+      <div style="text-align:center;margin:20px 0;">
+        <span class="role-badge ${role}">${role.replace('_',' ').toUpperCase()}</span>
+      </div>
+      <p style="text-align:center;font-size:0.85rem;color:#8a9bb5;">${roleDescription(role)}</p>
+      <div class="row center" style="margin-top:16px;">
+        <button class="btn primary" onclick="closeModal()">GOT IT</button>
+      </div>
+    `);
+  }
+
+  function roleDescription(role){
+    return {
+      killer:'At night, choose a player to eliminate. Kill all civilians to win.',
+      doctor:'At night, protect one player. You have one revive for the whole game.',
+      detective:'At night, investigate a player. Chat for 30s, then detain (1 day prison) or release.',
+      jester:'If you get voted out during the day, you instantly win.',
+      civilian:'Discuss and vote during the day. Survive the night.',
+      special_civilian:'You have a one-time ability to challenge a player to Rock-Paper-Scissors at night.'
+    }[role] || '';
+  }
+
+  // ===== GAME RENDERING =====
+  function renderGame(room){
+    const me = players.find(p=>p.id === myPlayerId) || players[0];
+    const isSpectator = me && !me.alive;
+    const alivePlayers = players.filter(p => p.alive);
+    const aliveKillers = alivePlayers.filter(p => p.role === 'killer').length;
+    const isEndGame = alivePlayers.length <= 3 && aliveKillers > 0;
+
+    $('playerRoleCard').style.display = isHost ? 'none' : 'block';
+    $('spectatorBanner').style.display = (isSpectator && !isHost) ? 'block' : 'none';
+
+    if (me && !isHost){
+      $('myRoleBadge').textContent = me.role ? me.role.replace('_',' ').toUpperCase() : '???';
+      $('myRoleBadge').className = 'role-badge ' + (me.role || 'civilian');
+    }
+    
+    $('aliveCount').textContent = `${alivePlayers.length} alive`;
+    $('killerCount').textContent = `${aliveKillers} killers`;
+
+    const phaseBadge = $('phaseBadge');
+    phaseBadge.textContent = gameOver ? 'GAME OVER' : phase==='day' ? `DAY ${dayCount}` : phase==='night' ? `NIGHT ${dayCount}` : 'LOBBY';
+    phaseBadge.style.background = phase==='night' ? '#1a1e3a' : '#2a3245';
+
+    $('townScene').classList.toggle('night', phase==='night');
+    $('centerTable').classList.toggle('night', phase==='night');
+    $('tableText').textContent = phase==='night' ? 'HOUSES' : 'DISCUSSION';
+
+    renderTown(room);
+
+    $('hostTimerPanel').style.display = isHost && !gameOver && !isEndGame ? 'block' : 'none';
+    $('hostVotePanel').style.display = isHost && phase==='day' && !gameOver ? 'block' : 'none';
+    
+    // Hide "Next Phase" button if it's the 3-player endgame
+    if ($('btnNextPhase')) {
+        $('btnNextPhase').style.display = isEndGame ? 'none' : 'inline-block';
+    }
+
+    $('gameLog').style.display = isHost ? 'block' : 'none';
+    $('hostChatMonitor').style.display = isHost ? 'block' : 'none';
+    
+    if (isHost) {
+        $('hostPlayerListPanel').style.display = 'block';
+        let listHtml = '';
+        players.forEach(p => {
+            listHtml += `<div>${p.alive ? '🟢' : '💀'} <b>${escapeHtml(p.name)}</b> - ${p.role ? p.role.replace('_',' ').toUpperCase() : '???'}</div>`;
+        });
+        $('hostPlayerList').innerHTML = listHtml;
+
+        let historyHtml = '';
+        (room.gameLogs || []).forEach(log => {
+            if (log.text.includes('💀') || log.text.includes('🩺') || log.text.includes('🗳️')) {
+                historyHtml += `<div>${log.text}</div>`;
+            }
+        });
+        $('hostNightHistory').innerHTML = historyHtml || '<div style="color:#5e6d88;">No events yet.</div>';
+    } else {
+        $('hostPlayerListPanel').style.display = 'none';
+    }
+
+    $('playerTimerPanel').style.display = !isHost && !gameOver ? 'block' : 'none';
+    
+    if (me && (me.pendingAction || (room.voteOpen && me.alive))) {
+        $('bellContainer').style.display = 'block';
+        $('bellBadge').style.display = 'block';
+    } else {
+        $('bellContainer').style.display = 'none';
+        $('bellBadge').style.display = 'none';
+    }
+
+    if (!isHost && me) {
+        $('aliveChatPanel').style.display = (me.alive && phase === 'day' && !gameOver) ? 'block' : 'none';
+        $('deadChatPanel').style.display = (!me.alive && !gameOver) ? 'block' : 'none';
+    }
+
+    const inPrison = me && me.detainedUntilDay && dayCount < me.detainedUntilDay;
+    const canAct = !isHost && me && me.alive && !inPrison && !gameOver && phase !== 'lobby';
+    $('playerActionPanel').style.display = canAct ? 'block' : 'none';
+
+    updateTimerUI();
+    if (!localTimerInterval && timerEnd > 0) startLocalTimer();
+    updateActionButton(room);
+
+    // --- RPS LISTENER INITIATION (Real-time sync) ---
+    if (room.rpsGame && !window.__rpsActive) {
+        const rps = room.rpsGame;
+        // ONLY show to the two involved players, NEVER the host
+        if (!isHost && me && (me.id === rps.challengerId || me.id === rps.defenderId)) {
+            window.__rpsActive = true;
+            openModal(`
+              <h2>✊ ROCK · PAPER · SCISSORS</h2>
+              <p>Best of 3</p>
+              <div style="display:flex; justify-content:space-around; margin-bottom:16px;">
+                <div style="text-align:center;">
+                    <div style="font-weight:700; color:#cbd5e1; margin-bottom:8px;">${escapeHtml(rps.challengerName)}</div>
+                    <div id="rpsDotsC"></div>
+                </div>
+                <div style="text-align:center;">
+                    <div style="font-weight:700; color:#cbd5e1; margin-bottom:8px;">${escapeHtml(rps.defenderName)}</div>
+                    <div id="rpsDotsD"></div>
+                </div>
+              </div>
+              <div class="rps-choices" id="rpsChoices">
+                <button class="rps-btn" data-rps="rock">✊</button>
+                <button class="rps-btn" data-rps="paper">✋</button>
+                <button class="rps-btn" data-rps="scissors">✌️</button>
+              </div>
+              <p style="text-align:center;font-size:0.8rem;color:#8a9bb5;" id="rpsStatus">Waiting...</p>
+            `);
+
+            const isChallenger = me.id === rps.challengerId;
+            const myPickKey = isChallenger ? 'challengerPick' : 'defenderPick';
+            const oppPickKey = isChallenger ? 'defenderPick' : 'challengerPick';
+            
+            const renderRPSUI = (state) => {
+                let cDots = ''; let dDots = '';
+                for(let i=0; i<3; i++) {
+                    cDots += `<span style="color:${state.challengerHistory && state.challengerHistory[i] ? '#f5c542' : '#3d475c'}; font-size:1.5rem;">●</span>`;
+                    dDots += `<span style="color:${state.defenderHistory && state.defenderHistory[i] ? '#f5c542' : '#3d475c'}; font-size:1.5rem;">●</span>`;
+                }
+                if ($('rpsDotsC')) $('rpsDotsC').innerHTML = cDots;
+                if ($('rpsDotsD')) $('rpsDotsD').innerHTML = dDots;
+
+                if (state.status === 'finished') {
+                    if ($('rpsChoices')) $('rpsChoices').style.display = 'none';
+                    if ($('rpsStatus')) $('rpsStatus').textContent = 'Game Over';
+                    return;
+                }
+
+                document.querySelectorAll('.rps-btn').forEach(b => {
+                    b.disabled = !!state[myPickKey];
+                    if (b.dataset.rps === state[myPickKey]) b.classList.add('selected');
+                    else b.classList.remove('selected');
+                });
+
+                if (state[myPickKey] && !state[oppPickKey]) {
+                    if ($('rpsStatus')) $('rpsStatus').textContent = 'Waiting for opponent...';
+                } else if (!state[myPickKey] && !state[oppPickKey]) {
+                    if ($('rpsStatus')) $('rpsStatus').textContent = isChallenger ? 'You pick first!' : 'Waiting for challenger...';
+                } else if (!state[myPickKey] && state[oppPickKey]) {
+                    if ($('rpsStatus')) $('rpsStatus').textContent = 'Opponent picked. Your turn!';
+                } else if (state[myPickKey] && state[oppPickKey]) {
+                    if ($('rpsStatus')) $('rpsStatus').textContent = 'Resolving...';
+                }
+            };
+
+            const attachButtonHandlers = () => {
+                document.querySelectorAll('.rps-btn').forEach(b => {
+                    b.onclick = async () => {
+                        if (b.disabled) return;
+                        const snap = await roomRef.child('rpsGame').once('value');
+                        const currentState = snap.val();
+                        if (!currentState || currentState[myPickKey]) return;
+                        await roomRef.child(`rpsGame/${myPickKey}`).set(b.dataset.rps);
+                    };
+                });
+            };
+
+            renderRPSUI(rps);
+            attachButtonHandlers();
+
+            roomRef.child('rpsGame').on('value', async snap => {
+                const state = snap.val();
+                if (!state) return;
+                
+                renderRPSUI(state);
+                attachButtonHandlers();
+
+                if (state.challengerPick && state.defenderPick && state.status === 'playing') {
+                    const cPick = state.challengerPick;
+                    const dPick = state.defenderPick;
+                    const beats = { rock:'scissors', paper:'rock', scissors:'paper' };
+                    
+                    let cWin = false, dWin = false, tie = false;
+                    if (cPick === dPick) tie = true;
+                    else if (beats[cPick] === dPick) cWin = true;
+                    else dWin = true;
+
+                    let newState = { ...state };
+                    if (cWin) {
+                        newState.challengerWins = (newState.challengerWins || 0) + 1;
+                        newState.challengerHistory = (newState.challengerHistory || []).concat([true]);
+                    } else if (dWin) {
+                        newState.defenderWins = (newState.defenderWins || 0) + 1;
+                        newState.defenderHistory = (newState.defenderHistory || []).concat([true]);
+                    }
+
+                    if (newState.challengerWins >= 2 || newState.defenderWins >= 2) {
+                        newState.status = 'finished';
+                        await roomRef.child('rpsGame').set(newState);
+                        
+                        if ($('modalBox')) {
+                            let resultHtml = '';
+                            if (newState.challengerWins >= 2) {
+                                // Challenger (Special Civilian) won
+                                if (isChallenger) {
+                                    const targetRole = (await roomRef.child(`players/${state.defenderId}/role`).once('value')).val();
+                                    resultHtml = `
+                                        <h2>🏆 YOU WIN!</h2>
+                                        <p>You defeated ${escapeHtml(state.defenderName)}.</p>
+                                        <p style="margin-top:16px;font-size:1.1rem;">Their role is: <span class="role-badge ${targetRole}">${targetRole.replace('_',' ').toUpperCase()}</span></p>
+                                    `;
+                                } else {
+                                    resultHtml = `
+                                        <h2>❌ YOU ARE DEFEATED</h2>
+                                        <p>You lost to ${escapeHtml(state.challengerName)}.</p>
+                                    `;
+                                }
+                            } else {
+                                // Defender won
+                                if (isChallenger) {
+                                    resultHtml = `
+                                        <h2>❌ YOU ARE DEFEATED</h2>
+                                        <p>You lost to ${escapeHtml(state.defenderName)}.</p>
+                                    `;
+                                } else {
+                                    resultHtml = `
+                                        <h2>🏆 YOU WIN!</h2>
+                                        <p>You defeated the challenger!</p>
+                                    `;
+                                }
+                            }
+                            
+                            $('modalBox').innerHTML = `
+                                ${resultHtml}
+                                <div class="row center" style="margin-top:16px;">
+                                  <button class="btn primary" onclick="closeModal()">OK</button>
+                                </div>
+                            `;
+                        }
+
+                        // Clean up RPS after 3s so it can be played again
+                        setTimeout(() => {
+                            roomRef.child('rpsGame').remove();
+                            roomRef.child('rpsGame').off();
+                            window.__rpsActive = false;
+                        }, 3000);
+                    } else {
+                        if (tie) {
+                            if ($('rpsStatus')) $('rpsStatus').textContent = 'It\'s a Tie! Round again...';
+                        } else {
+                            if ($('rpsStatus')) $('rpsStatus').textContent = cWin ? `${state.challengerName} wins the round!` : `${state.defenderName} wins the round!`;
+                        }
+
+                        setTimeout(async () => {
+                            newState.challengerPick = null;
+                            newState.defenderPick = null;
+                            await roomRef.child('rpsGame').set(newState);
+                        }, 1500);
+                    }
+                }
+            });
+        }
+    }
+    
+    if (!room.rpsGame && window.__rpsActive) {
+        window.__rpsActive = false;
+        roomRef.child('rpsGame').off();
+    }
+  }
+
+  // ===== BELL CLICK =====
+  $('bellContainer').addEventListener('click', ()=>{
+    const me = players.find(p=>p.id === myPlayerId);
+    if (!me) return;
+    
+    $('bellContainer').style.display = 'none';
+    $('bellBadge').style.display = 'none';
+    
+    if (roomRef && roomRef.key) {
+        roomRef.once('value').then(snap => {
+            const room = snap.val();
+            if (room.voteOpen && me.alive) {
+                openVoteModal(room);
+            } else if (me.pendingAction) {
+                if (me.pendingAction.type === 'detective') {
+                    openPrivateChat(me.pendingAction.fromId, 'Detective', 'detective');
+                    roomRef.child(`players/${myPlayerId}/pendingAction`).remove();
+                } else if (me.pendingAction.type === 'challenge') {
+                    openModal(`
+                        <h2>✊ Challenge Received!</h2>
+                        <p>Someone challenges you to Rock-Paper-Scissors!</p>
+                        <button class="btn primary" id="btnAcceptChallenge">ACCEPT</button>
+                    `);
+                    $('btnAcceptChallenge').addEventListener('click', ()=>{
+                        closeModal();
+                        // Initialize the global RPS game state
+                        roomRef.child('rpsGame').set({
+                            challengerId: me.pendingAction.fromId,
+                            challengerName: me.pendingAction.fromName,
+                            defenderId: myPlayerId,
+                            defenderName: me.name,
+                            challengerPick: null,
+                            defenderPick: null,
+                            challengerWins: 0,
+                            defenderWins: 0,
+                            challengerHistory: [],
+                            defenderHistory: [],
+                            status: 'playing'
+                        });
+                        roomRef.child(`players/${me.pendingAction.fromId}/pendingAction`).set({ status: 'accepted', targetId: myPlayerId });
+                        roomRef.child(`players/${me.pendingAction.fromId}/usedAction`).set(true);
+                        roomRef.child(`players/${myPlayerId}/pendingAction`).remove();
+                    });
+                }
+            }
+        });
+    }
+  });
+
+  function openVoteModal(room) {
+    let buttons = '';
+    players.forEach(p => {
+        if (p.alive && p.id !== myPlayerId) {
+            buttons += `<button class="btn vote-modal-btn" onclick="castVote('${p.id}', '${escapeHtml(p.name)}')">${escapeHtml(p.name)}</button>`;
+        }
+    });
+
+    openModal(`
+      <h2>🗳️ VOTE NOW</h2>
+      <p>Select a player to vote out.</p>
+      <div style="display:flex; flex-direction:column;">
+        ${buttons}
+      </div>
+    `);
+  }
+
+  window.castVote = async function(targetId, targetName) {
+    await roomRef.child(`votes/${myPlayerId}`).set(targetId);
+    openModal(`
+      <h2>Vote Cast</h2>
+      <p>You voted for <b>${targetName}</b>.</p>
+      <p>Waiting for other players...</p>
+    `);
+    
+    // Check if all alive players have voted
+    const roomSnap = await roomRef.once('value');
+    const room = roomSnap.val();
+    const alivePlayers = Object.values(room.players).filter(p => p.alive);
+    const currentVotes = room.votes || {};
+    
+    if (Object.keys(currentVotes).length === alivePlayers.length) {
+        await roomRef.child('voteOpen').set(false);
+        await tallyVotesOnHost();
+    } else {
+        clearTimeout(voteTimeout);
+        voteTimeout = setTimeout(() => {
+            closeModal();
+        }, 60000);
+    }
+  };
+
+  function renderTown(room){
+    const ring = $('townRing');
+    ring.querySelectorAll('.house-slot').forEach(n=>n.remove());
+
+    const n = MAX_PLAYERS;
+    const radius = 42;
+    players.forEach((p,i)=>{
+      const angle = (i/n) * Math.PI * 2 - Math.PI/2;
+      const x = 50 + radius * Math.cos(angle);
+      const y = 50 + radius * Math.sin(angle);
+
+      const slot = document.createElement('div');
+      slot.className = 'house-slot';
+      slot.style.left = x + '%';
+      slot.style.top = y + '%';
+      
+      if (!p.alive) slot.classList.add('dead');
+      if (selectedTargetId === p.id) slot.classList.add('highlight');
+      if (phase === 'night') slot.classList.add('at-table');
+      
+      const inPrison = p.detainedUntilDay && dayCount < p.detainedUntilDay;
+      if (inPrison) slot.classList.add('prison');
+
+      const icon = !p.alive ? '💀' : inPrison ? '🚔' : '🏠';
+      slot.innerHTML = `
+        <div class="house-emoji">${icon}</div>
+        <div class="house-player ${p.alive?'':'dead'}">${escapeHtml(p.name)}</div>
+      `;
+      
+      if (p.alive && !gameOver && phase !== 'lobby' && !isHost){
+        slot.addEventListener('click', ()=>handlePlayerClick(p.id));
+      }
+      ring.appendChild(slot);
+    });
+  }
+
+  function handlePlayerClick(id){
+    if (gameOver || phase === 'lobby' || isHost) return;
+    const me = players.find(p=>p.id === myPlayerId);
+    if (!me || !me.alive) return;
+    if (id === me.id) return;
+	    const target = players.find(p=>p.id===id);
+    if (!target || !target.alive) return;
+
+    if (phase === 'day') return;
+
+    if (phase === 'night'){
+      if (actionLocked) return;
+      if (me.role === 'killer'){
+        if (target.role === 'killer') return;
+        selectedTargetId = selectedTargetId === id ? null : id;
+        renderGame({});
+      } else if (me.role === 'doctor' || me.role === 'detective'){
+        selectedTargetId = selectedTargetId === id ? null : id;
+        renderGame({});
+      } else if (me.role === 'special_civilian' && !me.usedAction){
+        selectedTargetId = selectedTargetId === id ? null : id;
+        renderGame({});
+      }
+    }
+  }
+
+  function updateActionButton(room){
+    const me = players.find(p=>p.id === myPlayerId);
+    const btn = $('btnPerformAction');
+    const hint = $('actionHint');
+    if (!me || !me.alive || gameOver || actionLocked){ btn.disabled = true; return; }
+
+    if (phase === 'day'){
+      btn.style.display = 'none';
+      hint.textContent = 'Use the bell to vote when the Host opens it.';
+    } else if (phase === 'night'){
+      btn.style.display = 'inline-block';
+      if (me.role === 'killer'){
+        btn.textContent = '🔪 KILL'; btn.disabled = selectedTargetId === null;
+        hint.textContent = 'Select a victim';
+      } else if (me.role === 'doctor'){
+        btn.textContent = '🩺 PROTECT'; btn.disabled = selectedTargetId === null;
+        hint.textContent = 'Select who to protect';
+      } else if (me.role === 'detective'){
+        btn.textContent = '🔍 INVESTIGATE'; btn.disabled = selectedTargetId === null;
+        hint.textContent = 'Select who to investigate';
+      } else if (me.role === 'special_civilian'){
+        if (me.usedAction) { btn.textContent = 'USED'; btn.disabled = true; hint.textContent = 'You have used your challenge.'; }
+        else { btn.textContent = '⚔️ CHALLENGE'; btn.disabled = selectedTargetId === null; hint.textContent = 'Select who to challenge to RPS'; }
+      } else {
+        btn.textContent = '🌙 WAIT'; btn.disabled = true; hint.textContent = 'You sleep through the night.';
+      }
+    }
+  }
+
+  $('btnClearTarget').addEventListener('click', ()=>{ selectedTargetId = null; renderGame({}); });
+
+  $('btnPerformAction').addEventListener('click', async ()=>{
+    const me = players.find(p=>p.id === myPlayerId);
+    if (!me || selectedTargetId === null) return;
+    const target = players.find(p=>p.id===selectedTargetId);
+    if (!target) return;
+
+    if (phase === 'night'){
+      if (me.role === 'killer'){
+        await roomRef.child(`nightActions/killer`).set(target.id);
+      } else if (me.role === 'doctor'){
+        await roomRef.child(`nightActions/doctor`).set(target.id);
+      } else if (me.role === 'detective'){
+        await roomRef.child(`players/${target.id}/pendingAction`).set({ type: 'detective', fromId: me.id, fromName: me.name });
+        openPrivateChat(target.id, 'Detective', 'detective');
+      } else if (me.role === 'special_civilian'){
+        await roomRef.child(`players/${target.id}/pendingAction`).set({ type: 'challenge', fromId: me.id, fromName: me.name });
+      }
+      selectedTargetId = null;
+    }
+  });
+
+  // ===== CHAT HANDLERS =====
+  $('btnSendAliveChat').addEventListener('click', async ()=>{
+    const txt = $('aliveChatInput').value.trim();
+    if (!txt) return;
+    const me = players.find(p=>p.id === myPlayerId);
+    if (!me) return;
+    await roomRef.child('chats/alive').push({ name: me.name, text: txt });
+    $('aliveChatInput').value = '';
+  });
+
+  $('btnSendDeadChat').addEventListener('click', async ()=>{
+    const txt = $('deadChatInput').value.trim();
+    if (!txt) return;
+    const me = players.find(p=>p.id === myPlayerId);
+    if (!me) return;
+    await roomRef.child('chats/dead').push({ name: me.name, text: txt });
+    $('deadChatInput').value = '';
+  });
+
+  $('btnHostSendAlive').addEventListener('click', async ()=>{
+    const txt = $('hostAliveInput').value.trim();
+    if (!txt) return;
+    await roomRef.child('chats/alive').push({ name: 'HOST', text: txt });
+    $('hostAliveInput').value = '';
+  });
+
+  $('btnHostSendDead').addEventListener('click', async ()=>{
+    const txt = $('hostDeadInput').value.trim();
+    if (!txt) return;
+    await roomRef.child('chats/dead').push({ name: 'HOST', text: txt });
+    $('hostDeadInput').value = '';
+  });
+
+  // ===== TIMER =====
+  function startLocalTimer(){
+    stopLocalTimer();
+    updateTimerUI();
+    localTimerInterval = setInterval(updateTimerUI, 1000);
+  }
+  
+  function stopLocalTimer(){
+    if (localTimerInterval) clearInterval(localTimerInterval);
+    localTimerInterval = null;
+  }
+
+  function updateTimerUI(){
+    if (!timerEnd) {
+      if($('playerTimer')) $('playerTimer').textContent = "1:00";
+      if($('hostTimer')) $('hostTimer').textContent = "1:00";
+      return;
+    }
+    const now = Date.now();
+    const diff = Math.max(0, Math.floor((timerEnd - now) / 1000));
+    const m = Math.floor(diff/60);
+    const s = diff % 60;
+    const txt = `${m}:${String(s).padStart(2,'0')}`;
+    
+    if ($('hostTimer')) {
+      $('hostTimer').textContent = txt;
+      $('hostTimer').classList.toggle('warning', diff<=10 && diff>0);
+    }
+    if ($('playerTimer')) {
+      $('playerTimer').textContent = txt;
+      $('playerTimer').classList.toggle('warning', diff<=10 && diff>0);
+    }
+    
+    if (diff <= 0 && timerEnd > 0) {
+        if ($('hostTimer')) $('hostTimerHint').textContent = 'Time is up!';
+        if ($('playerTimer')) $('playerTimerHint').textContent = 'Time is up!';
+    }
+  }
+
+  // ===== HOST TIMER ACTIONS =====
+  $('btnStartTimer').addEventListener('click', async ()=>{
+    const end = Date.now() + (PHASE_SECONDS * 1000);
+    await roomRef.child('timerEnd').set(end);
+  });
+
+  $('btnSkipTimer').addEventListener('click', async ()=>{
+    await roomRef.child('timerEnd').set(Date.now());
+  });
+
+  $('btnNextPhase').addEventListener('click', async ()=>{
+    if (phase === 'day') {
+      window.__rpsActive = false;
+      await roomRef.update({ phase: 'night', timerEnd: 0, votes: {}, voteOpen: false, nightActions: {} });
+    } else if (phase === 'night') {
+      resolveNightOnHost();
+    }
+  });
+
+  // ===== HOST VOTE =====
+  $('btnStartVote').addEventListener('click', async ()=>{
+    await roomRef.update({ voteOpen: true, votes: {} });
+    setTimeout(async ()=>{
+        const snap = await roomRef.once('value');
+        if (snap.val().voteOpen) {
+            await roomRef.child('voteOpen').set(false);
+            tallyVotesOnHost();
+        }
+    }, 60000);
+  });
+
+  async function tallyVotesOnHost(){
+    const roomSnap = await roomRef.once('value');
+    const room = roomSnap.val();
+    const currentVotes = room.votes || {};
+    
+    const counts = {};
+    Object.values(currentVotes).forEach(tid=>{ counts[tid] = (counts[tid]||0)+1; });
+    let maxId=null, maxCount=0, tie=false;
+    Object.entries(counts).forEach(([id,c])=>{
+      if (c>maxCount){ maxCount=c; maxId=id; tie=false; }
+      else if (c===maxCount) tie=true;
+    });
+
+    const results = $('hostVoteResults');
+    results.style.display='block';
+    results.innerHTML = '<h3 style="color:#f5c542;font-size:0.85rem;letter-spacing:1px;margin-bottom:8px;">VOTE RESULTS</h3>';
+    
+    if (Object.keys(counts).length === 0){
+      results.innerHTML += '<div style="color:#8a9bb5;">No votes cast.</div>';
+      await roomRef.child('gameLogs').push({ text: '🗳️ No votes were cast.', type: 'system' });
+      return;
+    }
+    
+    Object.entries(counts).forEach(([id, count])=>{
+      const p = room.players[id];
+      if (p) {
+        const row = document.createElement('div');
+        row.className = 'vote-row';
+        row.innerHTML = `<span class="n">${escapeHtml(p.name)}</span><span class="count">${count}</span>`;
+        results.appendChild(row);
+      }
+    });
+
+    if (maxId && !tie){
+      const victim = room.players[maxId];
+      if (victim){
+        await roomRef.child(`players/${maxId}/alive`).set(false);
+        const victimRole = victim.role;
+        
+        // Check if this was a 3-player endgame scenario
+        const aliveBeforeVote = Object.values(room.players).filter(p => p.alive).length;
+        const isEndGame = aliveBeforeVote <= 3;
+        
+        // Announcement for everyone
+        const announcement = `🗳️ The town voted out <b>${escapeHtml(victim.name)}</b>. They were the <b>${victimRole.replace('_',' ').toUpperCase()}</b>.`;
+        await roomRef.child('gameLogs').push({ text: announcement, type: 'civilian' });
+        
+        // Determine the win condition for the modal
+        let winTitle = '';
+        let winMessage = '';
+        
+        if (victimRole === 'jester') {
+            winTitle = 'JESTER WINS';
+            winMessage = 'SO LONG SUCKERS';
+        } else if (isEndGame) {
+            if (victimRole === 'killer') {
+                winTitle = 'CIVILIAN WINS';
+                winMessage = 'HULI KA BALBON';
+            } else {
+                // Civilian/Doctor/Detective/Special Civilian voted out in endgame
+                winTitle = 'KILLER WINS';
+                winMessage = 'NICE TRY PEASANTS';
+            }
+        }
+        
+        // Show modal to everyone with Name and Role
+        openModal(`
+          <h2>Vote Result</h2>
+          <p><b>${escapeHtml(victim.name)}</b> was voted out!</p>
+          <p style="margin-top:16px;">Their role was: <span class="role-badge ${victimRole}">${victimRole.replace('_',' ').toUpperCase()}</span></p>
+          ${winTitle ? `<p style="margin-top:20px;font-weight:800;font-size:1.1rem;color:#f5c542;">${winTitle}</p><p>${winMessage}</p>` : ''}
+          <button class="btn primary" onclick="closeModal()">OK</button>
+        `);
+
+        // WIN CONDITION LOGIC
+        if (winTitle) {
+            await triggerGameOver(winTitle, winMessage);
+            return;
+        }
+        
+        // Check for Killer Win (standard)
+        const alivePlayers = Object.values(room.players).filter(p => p.alive && p.id !== maxId);
+        const aliveKillers = alivePlayers.filter(p => p.role === 'killer').length;
+        const aliveNonKillers = alivePlayers.filter(p => p.role !== 'killer').length;
+
+        if (aliveKillers >= aliveNonKillers && aliveKillers > 0) {
+            await triggerGameOver('KILLER WINS', `💀 The killers have taken over! Remaining players: ${alivePlayers.map(p=>p.name).join(', ')}`);
+            return;
+        }
+
+        if (aliveKillers === 0 && aliveNonKillers > 0) {
+             await triggerGameOver('CIVILIAN WINS', '🏆 The Killers have been voted out. The town is safe!');
+             return;
+        }
+
+        // If game continues
+        await checkWinConditionOnHost();
+      }
+    } else if (tie){
+        await roomRef.child('gameLogs').push({ text: '⚖️ The vote tied.', type: 'system' });
+        openModal(`<h2>Vote Result</h2><p>The vote tied! No one was eliminated.</p><button class="btn primary" onclick="closeModal()">OK</button>`);
+    }
+    
+    // Close the vote state
+    await roomRef.update({ voteOpen: false, votes: {} });
+  }
+
+  async function resolveNightOnHost(){
+    const roomSnap = await roomRef.once('value');
+    const room = roomSnap.val();
+    const actions = room.nightActions || {};
+    
+    let victimId = actions.killer;
+    let saveId = actions.doctor;
+    let killedName = '';
+    let killedRole = '';
+    let died = false;
+
+    if (victimId) {
+      if (saveId === victimId) {
+        await roomRef.child('gameLogs').push({ text: `🩺 The doctor saved someone!`, type: 'doctor' });
+      } else {
+        await roomRef.child(`players/${victimId}/alive`).set(false);
+        const victim = room.players[victimId];
+        killedName = victim.name;
+        killedRole = victim.role.replace('_',' ').toUpperCase();
+        died = true;
+        
+        await roomRef.child('gameLogs').push({ 
+            text: `💀 <b>${escapeHtml(victim.name)}</b> was killed during the night. They were the <b>${killedRole}</b>.`, 
+            type: 'killer' 
+        });
+
+        openModal(`
+          <h2>Someone has died!</h2>
+          <p><b>${escapeHtml(killedName)}</b> was killed during the night.</p>
+          <p>Their role was: <span class="role-badge ${killedRole.toLowerCase().replace(' ','_')}">${killedRole}</span></p>
+          <button class="btn primary" onclick="closeModal()">OK</button>
+        `);
+      }
+    } else {
+      await roomRef.child('gameLogs').push({ text: '🌙 A quiet night. Nobody was killed.', type: 'system' });
+    }
+
+    await roomRef.update({
+      phase: 'day',
+      dayCount: (room.dayCount || 1) + 1,
+      timerEnd: 0,
+      votes: {},
+      nightActions: {}
+    });
+
+    await checkWinConditionOnHost();
+  }
+
+  // ===== HOST LOGIC: CHECK WIN =====
+  async function checkWinConditionOnHost(){
+    const roomSnap = await roomRef.once('value');
+    const room = roomSnap.val();
+    const currentPlayers = Object.values(room.players || {});
+    
+    const aliveKillers = currentPlayers.filter(p=>p.alive && p.role==='killer').length;
+    const aliveNonKillers = currentPlayers.filter(p=>p.alive && p.role!=='killer').length;
+
+    // Killers win when they equal or outnumber non-killers
+    if (aliveKillers >= aliveNonKillers && aliveKillers > 0){
+      await triggerGameOver('KILLER WINS', '💀 The killers have taken over the town. They reign supreme.');
+    } else if (aliveKillers === 0 && aliveNonKillers > 0){
+      await triggerGameOver('CIVILIAN WINS', '🏆 The Killers have been eliminated. The town is safe!');
+    }
+  }
+
+  async function triggerGameOver(title, message){
+    await roomRef.update({
+      gameOver: true,
+      winnerTitle: title,
+      winnerMessage: message,
+      phase: 'gameover'
+    });
+  }
+
+  // ===== PRIVATE CHAT (Detective only - RELEASE/DETAIN REMOVED) =====
+  function openPrivateChat(targetId, targetName, type){
+    const myId = players.find(p=>p.id === myPlayerId).id;
+    const chatRoomId = [myId, targetId].sort().join('_');
+    const chatRef = db.ref(`rooms/${roomCode}/privateChats/${chatRoomId}`);
+    activeChatRef = chatRef;
+
+    let chatTimer = 30;
+    openModal(`
+      <h2>${type === 'detective' ? '🔍 Investigating' : '⚔️ Challenging'} ${escapeHtml(targetName)}</h2>
+      <p>You have <span id="privTimer">30</span>s to chat.</p>
+      <div class="chat-box" id="privChatBox" style="max-height:200px;"></div>
+      <div class="row">
+        <input type="text" id="privInput" placeholder="Type a message..." style="flex:1;">
+        <button class="btn" id="privSend">SEND</button>
+      </div>
+    `);
+
+    const interval = setInterval(()=>{
+      chatTimer--;
+      if ($('privTimer')) $('privTimer').textContent = chatTimer;
+      if (chatTimer <= 0){
+        clearInterval(interval);
+        closeModal();
+        chatRef.remove();
+      }
+    }, 1000);
+
+    chatRef.on('value', snap=>{
+      const msgs = snap.val() || {};
+      let html = '';
+      Object.values(msgs).forEach(m => html += `<div class="chat-msg"><b>${m.who}:</b> ${m.text}</div>`);
+      if ($('privChatBox')) {
+        $('privChatBox').innerHTML = html;
+        $('privChatBox').scrollTop = $('privChatBox').scrollHeight;
+      }
+    });
+
+    $('privSend').addEventListener('click', async ()=>{
+      const txt = $('privInput').value.trim();
+      if (!txt) return;
+      await chatRef.push({ who: 'Me', text: txt });
+      $('privInput').value = '';
+    });
+  }
+
+  // ===== MODAL =====
+  window.openModal = function(html){
+    $('modalBox').innerHTML = html;
+    $('modalBackdrop').classList.remove('hidden');
+  };
+  window.closeModal = function(){
+    $('modalBackdrop').classList.add('hidden');
+    $('modalBox').innerHTML = '';
+    if (activeChatRef) {
+        activeChatRef.off();
+        activeChatRef = null;
+    }
+  };
+  $('modalBackdrop').addEventListener('click', (e)=>{
+    if (e.target.id === 'modalBackdrop') closeModal();
+  });
+
+  // ===== UTILS =====
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ===== STARTUP =====
+  showScreen('intro');
+
+})();
+</script>
+</body>
+</html>
