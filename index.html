@@ -1327,8 +1327,8 @@
     }
   });
 
-  // ===== DETECTIVE RESTRAIN =====
-  $('btnRestrain').addEventListener('click', async ()=>{
+ // ===== DETECTIVE RESTRAIN =====
+$('btnRestrain').addEventListener('click', async ()=>{
     const me = players.find(p=>p.id === myPlayerId);
     if (!me || selectedTargetId === null) return;
     const target = players.find(p=>p.id===selectedTargetId);
@@ -1336,7 +1336,7 @@
 
     if (phase === 'night' && me.role === 'detective') {
         await roomRef.child(`players/${target.id}/detainedUntilDay`).set(dayCount + 1);
-        await roomRef.child(`players/${myPlayerId}/restrainCooldown`).set(dayCount + 2);
+        await roomRef.child(`players/${myPlayerId}/restrainCooldown`).set(dayCount + 1);
         await roomRef.child('gameLogs').push({
           text: `🔒 The Detective restrained <b>${escapeHtml(target.name)}</b> to jail!`,
           type: 'detective'
@@ -1349,7 +1349,7 @@
         `);
         selectedTargetId = null;
     }
-  });
+});
 
   // ===== CHAT HANDLERS =====
   $('btnSendAliveChat').addEventListener('click', async ()=>{
